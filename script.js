@@ -1929,6 +1929,7 @@ function finalizarSimulacion(){
   registrarRachaGoles(club, sim);
 
   guardarBaseDeDatos();
+  sincronizarRankingOnline();
   simulacionActual = null;
 }
 
@@ -2737,11 +2738,90 @@ function pintarHistorial(){
 
 /* ---------------------------------------------------------------------
    25) RANKING GLOBAL
-   Recorre TODAS las cuentas guardadas en este navegador (no solo la
-   tuya) y arma una tabla comparando a todos los directores técnicos
-   que jugaron acá. Se ordena por copas ganadas, después por puntos
-   de la temporada actual, y por último por presupuesto.
+   -------------------------------------------------------------------------
+   Hay dos fuentes de datos:
+
+   1) LOCAL: las cuentas guardadas en este navegador (obtenerRankingGlobal).
+      Siempre funciona, pero solo ve lo que se jugó en este aparato.
+
+   2) ONLINE (jsonbin.io): un JSON compartido en internet. Cada vez que
+      termina un partido, tu club manda un resumen (nombre, club, copas,
+      puntos, presupuesto) ahí. La pantalla de Ranking lee ese JSON
+      compartido, así que ve a TODOS los que jueguen, desde cualquier
+      dispositivo — no solo los de este navegador.
+
+   CÓMO ACTIVARLO (una sola vez):
+     1) Entrá a https://jsonbin.io y create una cuenta gratis.
+     2) Creá un bin nuevo (botón "Create Bin") con este contenido
+        exacto:   {"jugadores": {}}
+     3) Al crearlo te muestra el "Bin ID" — copialo.
+     4) Andá a tu cuenta → "API Keys" y copiá tu "X-Master-Key".
+     5) Pegá esos dos valores en JSONBIN_BIN_ID y JSONBIN_API_KEY, acá
+        abajo, reemplazando el texto de ejemplo.
+
+   LIMITACIÓN A TENER EN CUENTA: esa clave queda visible en el código
+   fuente de la página (cualquiera puede verla con "Ver código fuente"
+   o las herramientas de desarrollador). Es el precio de que sea
+   simple, sin servidor propio: en teoría alguien podría escribir
+   datos falsos en el ranking. Para un juego de hobby no es grave,
+   pero no reutilices esa clave para nada más importante.
+
+   Si no configurás nada (dejás los valores de ejemplo), el juego
+   sigue funcionando exactamente como antes: ranking solo local, sin
+   romperse ni tirar errores visibles.
    --------------------------------------------------------------------- */
+const JSONBIN_BIN_ID = "6aa85f2fac6210605acd3138";
+const JSONBIN_API_KEY = "$2a$10$QwmyC.S2vCo8Zwhy3XJ3nOlRKYgIcQ0lJRZywToWyPFq.Ysl9WXyC";
+const JSONBIN_CONFIGURADO = JSONBIN_BIN_ID !== "6aa85f2fac6210605acd3138" && JSONBIN_API_KEY !== "$2a$10$QwmyC.S2vCo8Zwhy3XJ3nOlRKYgIcQ0lJRZywToWyPFq.Ysl9WXyC";
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
+/* Trae el objeto { jugadores: {...} } compartido. Devuelve null si no
+   está configurado o si falló la conexión (sin cortar el juego). */
+async function leerRankingOnline(){
+  if(!JSONBIN_CONFIGURADO) return null;
+  try{
+    const resp = await fetch(JSONBIN_URL + "/latest", {
+      headers: { "X-Master-Key": JSONBIN_API_KEY }
+    });
+    if(!resp.ok) throw new Error("HTTP " + resp.status);
+    const datos = await resp.json();
+    return (datos.record && datos.record.jugadores) ? datos.record.jugadores : {};
+  }catch(err){
+    console.warn("No se pudo leer el ranking online, muestro solo el local:", err);
+    return null;
+  }
+}
+
+/* Actualiza (o crea) tu propia entrada dentro del JSON compartido.
+   Se llama sola después de cada partido — no hace falta tocar nada. */
+async function sincronizarRankingOnline(){
+  if(!JSONBIN_CONFIGURADO) return;
+  const club = usuario()?.club;
+  if(!club) return;
+  try{
+    const jugadores = (await leerRankingOnline()) || {};
+    const tabla = obtenerTablaOrdenada(club);
+    const miFila = tabla.find(f => f.nombre === club.nombre);
+    jugadores[emailActual] = {
+      nombre: emailActual.split("@")[0],
+      club: club.nombre,
+      temporada: club.temporada,
+      puntos: miFila ? miFila.pts : 0,
+      copas: club.estadisticas.copas || 0,
+      presupuesto: club.presupuesto
+    };
+    await fetch(JSONBIN_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
+      body: JSON.stringify({ jugadores })
+    });
+  }catch(err){
+    console.warn("No se pudo actualizar el ranking online:", err);
+  }
+}
+
+/* Ranking de respaldo: solo las cuentas guardadas en ESTE navegador.
+   Se usa si jsonbin no está configurado, o si falla la conexión. */
 function obtenerRankingGlobal(){
   const lista = [];
   Object.keys(baseDeDatos).forEach(email => {
@@ -2764,27 +2844,49 @@ function obtenerRankingGlobal(){
   return lista;
 }
 
-function pintarRanking(){
-  const lista = obtenerRankingGlobal();
+async function pintarRanking(){
   const contenedor = document.getElementById("lista-ranking");
+  contenedor.innerHTML = '<p class="vacio">Cargando ranking…</p>';
+
+  const jugadoresOnline = await leerRankingOnline();
+  let lista, esOnline;
+  if(jugadoresOnline){
+    lista = Object.keys(jugadoresOnline).map(email => ({ email, ...jugadoresOnline[email] }));
+    esOnline = true;
+  } else {
+    lista = obtenerRankingGlobal();
+    esOnline = false;
+  }
+  lista.sort((a, b) => b.copas - a.copas || b.puntos - a.puntos || b.presupuesto - a.presupuesto);
+
   if(!lista.length){
-    contenedor.innerHTML = '<p class="vacio">Todavía no hay directores técnicos para rankear en este navegador.</p>';
+    contenedor.innerHTML = '<p class="vacio">Todavía no hay directores técnicos para rankear.</p>';
     return;
   }
-  contenedor.innerHTML = lista.map((r, i) => `
-    <div class="ranking-item ${r.email === emailActual ? "ranking-yo" : ""}" onclick="verPerfilDesdeRanking('${r.email.replace(/'/g, "\\'")}')">
+
+  contenedor.innerHTML =
+    (esOnline ? "" : '<p class="info-mercado">Ranking local de este navegador — para verlo entre todos los dispositivos, activá jsonbin.io (ver comentario en script.js).</p>') +
+    lista.map((r, i) => {
+      // Solo se puede ver el perfil completo de cuentas que existen en
+      // ESTE navegador (la tuya, u otra creada acá). El resto de
+      // entradas online son solo el resumen, no el club entero.
+      const puedoVerPerfil = !!(baseDeDatos[r.email] && baseDeDatos[r.email].club);
+      const soyYo = r.email === emailActual;
+      return `
+    <div class="ranking-item ${soyYo ? "ranking-yo" : ""} ${puedoVerPerfil ? "" : "ranking-no-clickeable"}"
+         ${puedoVerPerfil ? `onclick="verPerfilDesdeRanking('${r.email.replace(/'/g, "\\'")}')"` : ""}>
       <span class="ranking-pos">${i + 1}°</span>
       <div class="ranking-info">
-        <p class="ranking-nombre">${r.nombre}${r.email === emailActual ? " (vos)" : ""}</p>
+        <p class="ranking-nombre">${r.nombre}${soyYo ? " (vos)" : ""}</p>
         <p class="ranking-detalle">${r.club} · Temporada ${r.temporada}</p>
       </div>
       <div class="ranking-datos">
         <p class="ranking-copas">🏆 ${r.copas}</p>
         <p class="ranking-puntos">${r.puntos} pts</p>
       </div>
-      <span class="flecha">→</span>
-    </div>
-  `).join("");
+      ${puedoVerPerfil ? '<span class="flecha">→</span>' : ""}
+    </div>`;
+    }).join("");
 }
 
 /* ---------------------------------------------------------------------

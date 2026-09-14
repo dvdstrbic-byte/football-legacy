@@ -271,7 +271,6 @@ img.escudo-equipo{
 .nombre-club{ margin: 0; font-weight: 800; font-size: 14.5px; }
 .info-club{ margin: 2px 0 0; font-size: 12px; color: var(--texto-suave); }
 .topbar-marca{ display: flex; align-items: center; gap: 7px; }
-.topbar-logo{ width: 26px; height: auto; flex-shrink: 0; }
 .topbar-der{ display: flex; align-items: center; gap: 8px; }
 .topbar-der .boton-chico{ padding: 7px 10px; }
 .hud-plata{ margin: 0; font-family: var(--fuente-titulo); color: var(--amarillo); font-size: 18px; letter-spacing: 0.5px; }
@@ -419,18 +418,24 @@ img.escudo-equipo{
 .cancha{
   background: repeating-linear-gradient(180deg, #1c5138 0 36px, #17492f 36px 72px);
   border: 3px solid rgba(244,241,232,0.28); border-radius: var(--radio);
-  padding: 20px 10px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; min-height: 400px;
+  padding: 20px 8px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; min-height: 400px;
 }
-.fila-cancha{ display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-.puesto{ display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 92px; }
+/* Antes .puesto tenía un min-width fijo (92px) y .chip-jugador un
+   width fijo (108px) que no coincidía — con 4 o 5 jugadores en una
+   fila (según la formación) no entraban y quedaban mal acomodados.
+   Ahora .puesto se achica o agranda según el espacio disponible
+   (flex-basis 64px, tope 108px) y el chip ocupa el 100% de su
+   puesto, así siempre quedan parejos sin importar cuántos haya. */
+.fila-cancha{ display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 6px; }
+.puesto{ display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1 1 64px; max-width: 108px; }
 .puesto-etiqueta{ font-family: var(--fuente-titulo); font-size: 12px; letter-spacing: 1.2px; color: rgba(244,241,232,0.8); }
 
 /* Chip que reemplaza al <select> nativo: se toca y abre el modal de abajo */
 .chip-jugador{
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  width: 108px; background: rgba(7,10,9,0.75); color: var(--texto);
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  width: 100%; background: rgba(7,10,9,0.75); color: var(--texto);
   border: 1.5px solid rgba(244,241,232,0.35); border-radius: 999px;
-  padding: 8px 11px; font-family: var(--fuente-texto); font-size: 11.5px; font-weight: 700;
+  padding: 8px 10px; font-family: var(--fuente-texto); font-size: 11.5px; font-weight: 700;
   cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.35); transition: transform var(--transicion), border-color var(--transicion);
 }
 .chip-jugador:hover{ border-color: var(--amarillo); }
@@ -736,6 +741,8 @@ img.escudo-equipo{
 }
 .ranking-item:hover{ border-color: var(--amarillo); background: var(--tarjeta-clara); }
 .ranking-item.ranking-yo{ border-color: var(--amarillo); background: rgba(255,201,60,0.08); }
+.ranking-item.ranking-no-clickeable{ cursor: default; }
+.ranking-item.ranking-no-clickeable:hover{ border-color: var(--borde); background: var(--tarjeta); }
 .ranking-pos{ font-family: var(--fuente-titulo); font-size: 19px; color: var(--amarillo); width: 32px; flex-shrink: 0; }
 .ranking-info{ flex: 1; min-width: 0; }
 .ranking-nombre{ margin: 0; font-weight: 800; font-size: 13.5px; }
@@ -760,3 +767,32 @@ img.escudo-equipo{
   box-shadow: var(--sombra-flotante);
 }
 .aviso.mostrar{ opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------------------------------------------------------------------
+   RESPONSIVE / MOBILE
+   .contenido quedó ancho (max-width 900px, padding 24px) pensado para
+   pantallas grandes. En celulares angostos eso le come espacio de
+   más a todo, y es lo que hacía que la Alineación (la fila con más
+   jugadores, 4 o 5 según la formación) quedara apretada. Acá se
+   achica el aire sobrante en pantallas chicas, sin tocar cómo se ve
+   en desktop/tablet.
+   --------------------------------------------------------------------- */
+@media (max-width: 480px){
+  .contenido{ padding: 16px 12px; }
+  .cancha{ padding: 16px 5px; gap: 10px; }
+  .fila-cancha{ gap: 8px 5px; }
+  .puesto{ flex-basis: 56px; }
+  .chip-jugador{ padding: 7px 7px; font-size: 10.5px; gap: 4px; }
+  .chip-jugador-nivel{ width: 18px; height: 18px; font-size: 11px; }
+  .puesto-etiqueta{ font-size: 10.5px; }
+
+  .topbar{ padding: 11px 12px; }
+  .nombre-club{ font-size: 13.5px; }
+  .hud-plata{ font-size: 16px; }
+  .topbar-der{ gap: 5px; }
+  .topbar-der .boton-chico{ padding: 6px 8px; font-size: 12px; }
+
+  .mini-tarjetas-4{ gap: 7px; }
+  .mini-tarjeta{ padding: 10px 4px; }
+  .mini-num{ font-size: 18px; }
+}
