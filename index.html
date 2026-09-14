@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Football Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+
+<!-- ======================= PANTALLA DE INICIO (portada) ======================= -->
+<section id="pantalla-inicio" class="pantalla activa">
+  <div class="portada">
+    <img src="imagenes/Banner-futbol.jpg" alt="Football Manager" class="portada-imagen" onerror="this.style.display='none'" />
+    <div class="portada-overlay">
+      <div class="portada-marca">
+        
+      </div>
+      <h1 class="portada-titulo">FOOTBALL MANAGER</h1>
+      <p class="portada-subtitulo">Elegí tu club, armá tu plantel y salí campeón</p>
+    </div>
+  </div>
+
+  <div class="portada-contenido">
+    <p class="portada-texto">
+      Football Manager es un juego de gestión donde vos sos el director técnico.
+      Elegís una liga real (Argentina, España o Inglaterra), te hacés cargo de uno
+      de sus 20 equipos —con presupuesto y jugadores reales— y jugás fecha a fecha,
+      temporada tras temporada, hasta convertirte en campeón.
+    </p>
+
+    <h2 class="portada-subtitulo-seccion">¿Cómo se juega?</h2>
+    <div class="portada-pasos">
+      <div class="portada-paso">
+        <span class="portada-paso-numero">1</span>
+        <p>Elegí una liga y un equipo. Cada club arranca con su propio presupuesto y nivel de jugadores.</p>
+      </div>
+      <div class="portada-paso">
+        <span class="portada-paso-numero">2</span>
+        <p>Armá tu alineación: elegí la formación y los titulares antes de cada partido.</p>
+      </div>
+      <div class="portada-paso">
+        <span class="portada-paso-numero">3</span>
+        <p>Jugá tus partidos minuto a minuto, con goles, tarjetas y penales en vivo.</p>
+      </div>
+      <div class="portada-paso">
+        <span class="portada-paso-numero">4</span>
+        <p>Comprá y vendé jugadores reales en el mercado de pases para reforzar tu plantel.</p>
+      </div>
+      <div class="portada-paso">
+        <span class="portada-paso-numero">5</span>
+        <p>Competí también por la Copa Nacional (ida y vuelta, con prórroga y penales) además de la liga.</p>
+      </div>
+      <div class="portada-paso">
+        <span class="portada-paso-numero">6</span>
+        <p>Al cerrar cada temporada tus jugadores crecen o envejecen, ganás premios según cómo te fue, y arranca una nueva.</p>
+      </div>
+    </div>
+
+    <button class="boton boton-amarillo boton-grande" onclick="irARegistro()">¡A jugar!</button>
+  </div>
+</section>
+
+<!-- ======================= PANTALLA: LOGIN / REGISTRO ======================= -->
+<section id="pantalla-auth" class="pantalla">
+  <div class="tarjeta">
+    <div class="marca-login">
+      <span class="insignia-marca insignia-marca--chica">FM</span>
+    </div>
+    <h1 class="titulo-grande">FOOTBALL MANAGER</h1>
+    <p class="subtitulo">Elegí tu club y jugá tu temporada</p>
+
+    <div class="tabs">
+      <button class="tab activa" id="tab-login" onclick="mostrarTab('login')">Iniciar sesión</button>
+      <button class="tab" id="tab-registro" onclick="mostrarTab('registro')">Registrarme</button>
+    </div>
+
+    <form id="form-login" class="formulario" onsubmit="return iniciarSesion(event)">
+      <input type="email" id="login-email" placeholder="Email" required />
+      <input type="password" id="login-pass" placeholder="Contraseña" required />
+      <p class="mensaje" id="login-mensaje"></p>
+      <button type="submit" class="boton boton-amarillo">Entrar</button>
+    </form>
+
+    <form id="form-registro" class="formulario oculto" onsubmit="return crearCuenta(event)">
+      <input type="email" id="registro-email" placeholder="Email" required />
+      <input type="password" id="registro-pass" placeholder="Contraseña (mínimo 4 caracteres)" required />
+      <p class="mensaje" id="registro-mensaje"></p>
+      <button type="submit" class="boton boton-amarillo">Crear cuenta</button>
+    </form>
+
+    <p class="ayuda">Tu partida se guarda en este navegador junto a tu email y contraseña. Iniciá sesión con esos mismos datos para retomarla.</p>
+  </div>
+</section>
+
+<!-- ======================= PANTALLA: ELEGIR LIGA ======================= -->
+<section id="pantalla-liga" class="pantalla">
+  <div class="encabezado-simple">
+    <h2>Elegí una liga</h2>
+    <p>Cada liga tiene equipos con distinto presupuesto y nivel</p>
+  </div>
+  <div class="lista-ligas" id="lista-ligas"></div>
+</section>
+
+<!-- ======================= PANTALLA: ELEGIR EQUIPO ======================= -->
+<section id="pantalla-equipo" class="pantalla">
+  <div class="encabezado-simple">
+    <button class="boton boton-chico" onclick="irAPantalla('pantalla-liga')"><span class="flecha-texto">←</span> Cambiar liga</button>
+    <h2 id="titulo-liga-elegida">Elegí tu equipo</h2>
+  </div>
+  <div class="lista-equipos" id="lista-equipos"></div>
+</section>
+
+<!-- ======================= APP (después de elegir equipo) ======================= -->
+<div id="app" class="app">
+
+  <header class="topbar">
+    <div>
+      <p class="nombre-club" id="hud-club">—</p>
+      <p class="info-club" id="hud-info">Temporada 1 · Fecha 1</p>
+    </div>
+    <div class="topbar-der">
+      <p class="hud-plata" id="hud-plata">$0</p>
+      <div class="control-musica">
+        <button class="boton boton-chico" id="btn-playlist" onclick="window.Sonido?.togglePlaylist?.()">🎵</button>
+        <div class="panel-playlist" id="panel-playlist" style="display:none;">
+          <p class="playlist-titulo">Música</p>
+          <div class="playlist-controles">
+            <button class="boton boton-chico" onclick="window.Sonido?.anterior?.()">◀ Anterior</button>
+            <button class="boton boton-chico" onclick="window.Sonido?.siguiente?.()">Siguiente ▶</button>
+          </div>
+          <div class="playlist-lista" id="playlist-lista"></div>
+        </div>
+      </div>
+      <button class="boton boton-chico boton-sonido" id="btn-sonido" onclick="window.Sonido?.toggleMute?.()">🔊</button>
+      <button class="boton boton-chico" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+
+  <main class="contenido">
+
+    <!-- ---------- INICIO ---------- -->
+    <section class="vista" id="vista-inicio">
+      <p class="etiqueta-tipo-partido" id="inicio-tipo-partido">LIGA · Fecha 1</p>
+      <div class="tarjeta-partido">
+        <p class="equipo-vs" id="inicio-mi-equipo">—</p>
+        <span class="vs">VS</span>
+        <p class="equipo-vs" id="inicio-rival">—</p>
+      </div>
+      <button class="boton boton-amarillo boton-grande" id="btn-jugar" onclick="jugarPartido()">Jugar partido</button>
+
+      <div class="mini-tarjetas mini-tarjetas-3">
+        <div class="mini-tarjeta"><p class="mini-num" id="inicio-posicion">—</p><p class="mini-label">Posición</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="inicio-goleador">—</p><p class="mini-label">Goleador</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="inicio-racha" style="font-size:14px;">—</p><p class="mini-label">Racha</p></div>
+      </div>
+
+      <div id="inicio-objetivos"></div>
+
+      <h3 class="subtitulo-seccion">📰 Noticias</h3>
+      <div class="lista-scroll lista-noticias" id="inicio-noticias"></div>
+    </section>
+
+    <!-- ---------- PLANTEL ---------- -->
+    <section class="vista" id="vista-plantel">
+      <div class="filtros" id="filtros-posicion">
+        <button class="filtro activa" onclick="filtrarPlantel('TODOS', this)">Todos</button>
+        <button class="filtro" onclick="filtrarPlantel('POR', this)">Arqueros</button>
+        <button class="filtro" onclick="filtrarPlantel('DEF', this)">Defensores</button>
+        <button class="filtro" onclick="filtrarPlantel('MED', this)">Medios</button>
+        <button class="filtro" onclick="filtrarPlantel('DEL', this)">Delanteros</button>
+      </div>
+      <div class="lista-jugadores lista-scroll" id="lista-plantel"></div>
+    </section>
+
+    <!-- ---------- ALINEACIÓN ---------- -->
+    <section class="vista" id="vista-alineacion">
+      <div class="encabezado-fila">
+        <h2>Alineación</h2>
+        <select id="select-formacion" onchange="cambiarFormacion()">
+          <option value="4-3-3">4-3-3</option>
+          <option value="4-4-2">4-4-2</option>
+          <option value="3-5-2">3-5-2</option>
+        </select>
+      </div>
+      <div class="cancha">
+        <div class="fila-cancha" id="fila-del"></div>
+        <div class="fila-cancha" id="fila-med"></div>
+        <div class="fila-cancha" id="fila-def"></div>
+        <div class="fila-cancha" id="fila-por"></div>
+      </div>
+      <p class="ayuda-centro" id="ayuda-alineacion"></p>
+    </section>
+
+    <!-- ---------- MERCADO ---------- -->
+    <section class="vista" id="vista-mercado">
+      <div class="filtros">
+        <button class="filtro activa" id="tab-comprar" onclick="cambiarTabMercado('comprar')">Comprar</button>
+        <button class="filtro" id="tab-vender" onclick="cambiarTabMercado('vender')">Vender</button>
+        <button class="filtro" id="tab-ofertas" onclick="cambiarTabMercado('ofertas')">Ofertas</button>
+        <button class="filtro" id="tab-fichar" onclick="cambiarTabMercado('fichar')">Fichar</button>
+      </div>
+      <div class="buscador-mercado" id="buscador-mercado">
+        <input type="text" id="buscador-mercado-texto" class="input-buscador" placeholder="Buscar jugador..." oninput="actualizarFiltrosMercado()" />
+        <button class="boton boton-chico" id="btn-toggle-filtros-mercado" onclick="toggleFiltrosMercado()">Filtros</button>
+      </div>
+
+      <div class="panel-filtros-mercado" id="panel-filtros-mercado" style="display:none;">
+        <div class="fila-filtro">
+          <label for="filtro-posicion">Posición</label>
+          <select id="filtro-posicion" onchange="actualizarFiltrosMercado()">
+            <option value="TODOS">Todas</option>
+            <option value="POR">Arquero</option>
+            <option value="DEF">Defensor</option>
+            <option value="MED">Mediocampista</option>
+            <option value="DEL">Delantero</option>
+          </select>
+        </div>
+        <div class="fila-filtro">
+          <label for="filtro-nivel-min">Nivel mínimo</label>
+          <input type="number" id="filtro-nivel-min" min="0" max="99" placeholder="Ej: 80" oninput="actualizarFiltrosMercado()" />
+        </div>
+        <div class="fila-filtro">
+          <label for="filtro-edad-max">Edad máxima</label>
+          <input type="number" id="filtro-edad-max" min="15" max="45" placeholder="Ej: 25" oninput="actualizarFiltrosMercado()" />
+        </div>
+        <div class="fila-filtro">
+          <label for="filtro-valor-max">Valor máximo (M)</label>
+          <input type="number" id="filtro-valor-max" min="0" step="0.5" placeholder="Ej: 30" oninput="actualizarFiltrosMercado()" />
+        </div>
+        <button class="boton boton-gris" style="margin-top:2px;" onclick="limpiarFiltrosMercado()">Limpiar filtros</button>
+      </div>
+
+      <p class="resumen-filtros-mercado" id="resumen-filtros-mercado" style="display:none;"></p>
+
+      <p class="info-mercado" id="mercado-info">Cargando mercado…</p>
+      <div class="lista-jugadores lista-scroll" id="lista-mercado"></div>
+    </section>
+
+    <!-- ---------- PARTIDO ---------- -->
+    <section class="vista" id="vista-partido">
+      <div class="marcador">
+        <p class="marcador-fecha" id="partido-fecha">FECHA 1</p>
+        <p class="reloj-partido" id="partido-minuto">0'</p>
+        <div class="marcador-central">
+          <p class="marcador-equipo" id="partido-local">—</p>
+          <p class="marcador-goles"><span id="partido-goles-local">0</span> - <span id="partido-goles-visita">0</span></p>
+          <p class="marcador-equipo" id="partido-visita">—</p>
+        </div>
+      </div>
+      <div class="tarjeta-mvp" id="partido-mvp" style="display:none;"></div>
+      <div class="tabla-stats-partido" id="partido-stats" style="display:none;"></div>
+      <div class="lista-goles lista-scroll" id="partido-goles"></div>
+      <button class="boton boton-gris" id="btn-cambios" onclick="togglePanelCambios()">Ajustes</button>
+      <div class="panel-cambios" id="panel-cambios" style="display:none;"></div>
+      <button class="boton boton-gris" id="btn-simular-todo" onclick="saltarSimulacion()">Simular hasta el final</button>
+      <button class="boton boton-amarillo boton-grande" id="btn-continuar-partido" style="display:none;" onclick="irAPantalla2('inicio')">Continuar</button>
+    </section>
+
+    <!-- ---------- CALENDARIO ---------- -->
+    <section class="vista" id="vista-calendario">
+      <div class="encabezado-simple" style="text-align:left; margin-bottom:14px;">
+        <h2 style="margin:0;">Calendario</h2>
+      </div>
+      <p class="info-mercado" id="calendario-copa-info">—</p>
+      <ul class="lista-resultados lista-scroll" id="lista-calendario"></ul>
+    </section>
+
+    <!-- ---------- LIGA ---------- -->
+    <section class="vista" id="vista-liga">
+      <div class="lista-scroll tabla-liga-wrap">
+        <table class="tabla-liga">
+          <thead>
+            <tr><th>#</th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr>
+          </thead>
+          <tbody id="tabla-liga-cuerpo"></tbody>
+        </table>
+      </div>
+      <button class="boton boton-gris" onclick="irAPantalla2('ranking')">Ver ranking global</button>
+    </section>
+
+    <!-- ---------- RANKING GLOBAL ---------- -->
+    <section class="vista" id="vista-ranking">
+      <div class="encabezado-simple" style="text-align:left; margin-bottom:14px;">
+        <button class="boton boton-chico" onclick="irAPantalla2('liga')"><span class="flecha-texto">←</span> Volver</button>
+        <h2 style="margin:8px 0 0;">Ranking global</h2>
+        <p style="color:var(--texto-suave); font-size:12.5px; margin:4px 0 0;">
+          Entre todos los directores técnicos registrados en este navegador
+        </p>
+      </div>
+      <div class="lista-scroll" id="lista-ranking"></div>
+    </section>
+
+    <!-- ---------- ESTADÍSTICAS ---------- -->
+    <section class="vista" id="vista-stats">
+      <div class="mini-tarjetas mini-tarjetas-4">
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-pj">0</p><p class="mini-label">Jugados</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-pg">0</p><p class="mini-label">Ganados</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-gf">0</p><p class="mini-label">Goles a favor</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-gc">0</p><p class="mini-label">Goles en contra</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-copas">0</p><p class="mini-label">Copas ganadas</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-efectividad">0%</p><p class="mini-label">Efectividad</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-racha" style="font-size:14px;">—</p><p class="mini-label">Racha actual</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="stat-valor-plantel" style="font-size:16px;">$0</p><p class="mini-label">Valor del plantel</p></div>
+      </div>
+      <button class="boton boton-gris" onclick="irAPantalla2('historial')">Ver temporadas anteriores</button>
+      <button class="boton boton-gris" onclick="verPerfilPropio()">Ver perfil del entrenador</button>
+      <h3 class="subtitulo-seccion">Goleadores</h3>
+      <ol class="lista-goleadores lista-scroll" id="lista-goleadores"></ol>
+    </section>
+
+    <!-- ---------- HISTORIAL DE TEMPORADAS ---------- -->
+    <section class="vista" id="vista-historial">
+      <div class="encabezado-simple" style="text-align:left; margin-bottom:14px;">
+        <button class="boton boton-chico" onclick="irAPantalla2('stats')"><span class="flecha-texto">←</span> Volver</button>
+        <h2 style="margin:8px 0 0;">Temporadas anteriores</h2>
+      </div>
+      <div class="lista-scroll" id="lista-historial"></div>
+    </section>
+
+    <!-- ---------- PERFIL DEL ENTRENADOR ---------- -->
+    <section class="vista" id="vista-perfil">
+      <div class="encabezado-simple" style="text-align:left; margin-bottom:14px;">
+        <button class="boton boton-chico" onclick="volverDesdePerfil()"><span class="flecha-texto">←</span> Volver</button>
+        <h2 style="margin:8px 0 0;" id="perfil-nombre">—</h2>
+        <p style="color:var(--texto-suave); font-size:12.5px; margin:4px 0 0;" id="perfil-club">—</p>
+      </div>
+
+      <div class="mini-tarjetas mini-tarjetas-4">
+        <div class="mini-tarjeta"><p class="mini-num" id="perfil-temporadas">0</p><p class="mini-label">Temporadas</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="perfil-partidos">0</p><p class="mini-label">Partidos</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="perfil-victorias">0</p><p class="mini-label">Victorias</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="perfil-empates">0</p><p class="mini-label">Empates</p></div>
+        <div class="mini-tarjeta"><p class="mini-num" id="perfil-derrotas">0</p><p class="mini-label">Derrotas</p></div>
+      </div>
+
+      <div class="perfil-trofeos">
+        <p id="perfil-ligas">Liga ×0</p>
+        <p id="perfil-copas">Copa ×0</p>
+        <p id="perfil-fichajes">Fichajes: $0</p>
+      </div>
+
+      <h3 class="subtitulo-seccion">Palmarés</h3>
+      <div class="lista-scroll" id="lista-palmares"></div>
+    </section>
+
+  </main>
+
+  <nav class="menu-inferior">
+    <button class="nav-boton activa" data-vista="inicio" onclick="irAPantalla2('inicio')">Inicio</button>
+    <button class="nav-boton" data-vista="plantel" onclick="irAPantalla2('plantel')">Plantel</button>
+    <button class="nav-boton" data-vista="alineacion" onclick="irAPantalla2('alineacion')">Once</button>
+    <button class="nav-boton" data-vista="mercado" onclick="irAPantalla2('mercado')">Mercado</button>
+    <button class="nav-boton" data-vista="calendario" onclick="irAPantalla2('calendario')">Calend.</button>
+    <button class="nav-boton" data-vista="liga" onclick="irAPantalla2('liga')">Liga</button>
+    <button class="nav-boton" data-vista="stats" onclick="irAPantalla2('stats')">Stats</button>
+  </nav>
+</div>
+
+<div id="aviso" class="aviso"></div>
+<div id="overlay-evento" class="overlay-evento"></div>
+
+<div id="overlay-resumen-temporada" class="overlay-resumen">
+  <div class="tarjeta-resumen-temporada">
+    <p class="resumen-titulo">FIN DE LA TEMPORADA <span id="resumen-temporada-numero"></span></p>
+    <div class="resumen-datos" id="resumen-temporada-datos"></div>
+    <button class="boton boton-amarillo boton-grande" onclick="cerrarResumenTemporada()">Continuar</button>
+  </div>
+</div>
+
+<!-- ---------- SELECTOR DE JUGADOR (reemplaza al <select> feo de Alineación) ---------- -->
+<div id="modal-selector-jugador" class="modal-selector">
+  <div class="modal-selector-fondo" onclick="cerrarSelectorJugador()"></div>
+  <div class="modal-selector-contenido">
+    <div class="modal-selector-header">
+      <p class="modal-selector-titulo" id="selector-titulo">Elegir jugador</p>
+      <button type="button" class="modal-selector-cerrar" onclick="cerrarSelectorJugador()">✕</button>
+    </div>
+    <div class="modal-selector-lista lista-scroll" id="lista-selector-jugador"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   SONIDO
+   -------------------------------------------------------------------------
+   Todo el sonido de acá sale de archivos reales que VOS pongas. No
+   hay ningún sonido generado por código como respaldo: si no ponés
+   un archivo para algo puntual, ese algo simplemente no suena (nada
+   se rompe, solo queda en silencio esa parte).
+
+   MÚSICA DE FONDO (varios temas, playlist)
+     Carpeta "musica" al lado de index.html. Agregá tus temas acá:
+
+       const PLAYLIST = [
+         { nombre: "Mi tema", archivo: "musica/mitema.mp3" },
+         ...
+       ];
+
+   EFECTOS DE PARTIDO
+     Carpeta "efectos" al lado de index.html, con estos nombres
+     exactos (agregá los que quieras, ninguno es obligatorio):
+
+       efectos/silbato.mp3        -> arranque y final del partido
+       efectos/gol.mp3            -> cuando VOS metés un gol
+       efectos/gol_rival.mp3      -> cuando te hacen un gol
+       efectos/penal.mp3          -> penal cobrado a tu favor
+       efectos/penal_errado.mp3   -> penal errado
+       efectos/amarilla.mp3       -> tarjeta amarilla
+       efectos/roja.mp3           -> tarjeta roja
+       efectos/cambio.mp3         -> cambio de jugador
+       efectos/lesion.mp3         -> lesión
+
+   Para revisar qué archivos encontró el juego, abrí la consola del
+   navegador (F12) y escribí:  verificarSonidos()
+   ========================================================================= */
+
+const PLAYLIST = [
+  { nombre: "Tema 1", archivo: "musica/wakawaka.mp3" },
+  { nombre: "Tema 2", archivo: "musica/lovemeagain.mp3" },
+  { nombre: "Tema 3", archivo: "musica/tema3.mp3" }
+  /* Agregá más acá, con la misma forma. */
+];
+
+const EFECTOS_REALES = {
+  silbato: "efectos/silbato.mp3",
+  gol: "efectos/gol.mp3",
+  golRival: "efectos/gol_rival.mp3",
+  penal: "efectos/penal.mp3",
+  penalErrado: "efectos/penal_errado.mp3",
+  amarilla: "efectos/amarilla.mp3",
+  roja: "efectos/roja.mp3",
+  cambio: "efectos/cambio.mp3",
+  lesion: "efectos/lesion.mp3"
+};
+
+const VOLUMEN_MENU = 0.35;
+const VOLUMEN_PARTIDO = 0.12; // durante el partido no se corta, solo baja
+
+let sonidoActivado = (localStorage.getItem("fm_sonido") ?? "on") !== "off";
+
+/* ---------------------------------------------------------------------
+   EFECTOS DE PARTIDO
+   --------------------------------------------------------------------- */
+const cacheEfectos = {};
+
+function reproducirEfecto(clave){
+  if(!sonidoActivado) return;
+  const ruta = EFECTOS_REALES[clave];
+  if(!ruta) return; // no agregaste este sonido: no suena nada
+  if(!cacheEfectos[clave]) cacheEfectos[clave] = new Audio(ruta);
+  const audio = cacheEfectos[clave];
+  audio.currentTime = 0;
+  audio.play().catch(() => {}); // si el archivo no existe, sigue en silencio
+}
+
+function sonidoSilbato(){ reproducirEfecto("silbato"); }
+function sonidoGol(){ reproducirEfecto("gol"); }
+function sonidoGolRival(){ reproducirEfecto("golRival"); }
+function sonidoPenalPuesto(){ reproducirEfecto("penal"); }
+function sonidoPenalErrado(){ reproducirEfecto("penalErrado"); }
+function sonidoAmarilla(){ reproducirEfecto("amarilla"); }
+function sonidoRoja(){ reproducirEfecto("roja"); }
+function sonidoCambio(){ reproducirEfecto("cambio"); }
+function sonidoLesion(){ reproducirEfecto("lesion"); }
+
+/* Enganche entre los eventos del partido (definidos en script.js) y
+   los efectos de arriba. Recibe el evento completo (no solo el tipo)
+   porque el gol necesita saber si fue tuyo o del rival. */
+function reproducirSonidoEvento(evento){
+  switch(evento.tipo){
+    case "gol": evento.mio ? sonidoGol() : sonidoGolRival(); break;
+    case "penal": sonidoPenalPuesto(); break;
+    case "penal_errado": sonidoPenalErrado(); break;
+    case "amarilla": sonidoAmarilla(); break;
+    case "roja": sonidoRoja(); break;
+    case "cambio": sonidoCambio(); break;
+    case "lesion": sonidoLesion(); break;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   MÚSICA DE FONDO (playlist)
+   Un solo <audio>, siempre el mismo: cambiar de pantalla (Inicio,
+   Mercado, un partido...) nunca lo pausa ni lo reinicia, solo le
+   ajustamos el volumen. Cambiar de tema sí lo hace, obviamente.
+   --------------------------------------------------------------------- */
+let indicePista = parseInt(localStorage.getItem("fm_pista"), 10);
+if(isNaN(indicePista) || indicePista < 0 || indicePista >= PLAYLIST.length) indicePista = 0;
+
+const musicaFondo = new Audio();
+musicaFondo.volume = VOLUMEN_MENU;
+
+musicaFondo.addEventListener("ended", () => reproducirPista(indicePista + 1));
+musicaFondo.addEventListener("error", () => {
+  // El archivo de este tema no existe o no se pudo cargar: pasamos
+  // al siguiente para no dejar todo en silencio por un solo archivo.
+  if(PLAYLIST.length > 1) reproducirPista(indicePista + 1, true);
+});
+
+function cargarPista(indice){
+  indicePista = ((indice % PLAYLIST.length) + PLAYLIST.length) % PLAYLIST.length;
+  localStorage.setItem("fm_pista", indicePista);
+  musicaFondo.src = PLAYLIST[indicePista].archivo;
+}
+
+function reproducirPista(indice, silencioso){
+  const yaEstabaSonando = !musicaFondo.paused;
+  cargarPista(indice);
+  actualizarPanelPlaylist();
+  if(!sonidoActivado) return;
+  if(yaEstabaSonando || !silencioso) musicaFondo.play().catch(() => {});
+}
+
+function pistaSiguiente(){ reproducirPista(indicePista + 1); }
+function pistaAnterior(){ reproducirPista(indicePista - 1); }
+
+/* Se llama cada vez que cambiás de pantalla (ver script.js): nunca
+   pausa ni reinicia la música, solo baja o sube el volumen. */
+function ajustarVolumenSegunVista(vista){
+  musicaFondo.volume = vista === "partido" ? VOLUMEN_PARTIDO : VOLUMEN_MENU;
+}
+
+/* Por si el navegador todavía no había dejado arrancar la música
+   (política de autoplay) y ya se destrabó el audio: la retoma sin
+   reiniciar nada si ya estaba sonando. */
+function asegurarMusicaSonando(){
+  if(sonidoActivado && musicaFondo.paused && musicaFondo.src) musicaFondo.play().catch(() => {});
+}
+
+/* ---------------------------------------------------------------------
+   PANEL DE PLAYLIST (botón 🎵 de arriba)
+   --------------------------------------------------------------------- */
+function pintarPanelPlaylist(){
+  const lista = document.getElementById("playlist-lista");
+  if(!lista) return;
+  lista.innerHTML = PLAYLIST.map((t, i) => `
+    <button class="opcion-playlist ${i === indicePista ? "activa" : ""}" onclick="window.Sonido?.reproducirPista?.(${i})">${t.nombre}</button>
+  `).join("");
+}
+function actualizarPanelPlaylist(){ pintarPanelPlaylist(); }
+
+function togglePanelPlaylist(){
+  const panel = document.getElementById("panel-playlist");
+  if(!panel) return;
+  const seVaAAbrir = panel.style.display === "none";
+  panel.style.display = seVaAAbrir ? "block" : "none";
+  if(seVaAAbrir) pintarPanelPlaylist();
+}
+
+/* ---------------------------------------------------------------------
+   BOTÓN DE MUTE (🔊 / 🔇, arriba)
+   Silencia o reactiva todo junto: efectos y música.
+   --------------------------------------------------------------------- */
+function actualizarBotonSonido(){
+  const btn = document.getElementById("btn-sonido");
+  if(!btn) return;
+  btn.textContent = sonidoActivado ? "🔊" : "🔇";
+  btn.classList.toggle("silenciado", !sonidoActivado);
+}
+
+function toggleSonido(){
+  sonidoActivado = !sonidoActivado;
+  localStorage.setItem("fm_sonido", sonidoActivado ? "on" : "off");
+  actualizarBotonSonido();
+  if(sonidoActivado){
+    if(!musicaFondo.src) cargarPista(indicePista);
+    musicaFondo.play().catch(() => {});
+  } else {
+    musicaFondo.pause();
+  }
+}
+
+/* Los navegadores bloquean audio hasta el primer click del usuario.
+   En cuanto tocan cualquier cosa por primera vez, arrancamos la
+   música (si corresponde). */
+let audioDesbloqueado = false;
+document.addEventListener("click", () => {
+  if(audioDesbloqueado) return;
+  audioDesbloqueado = true;
+  if(sonidoActivado){
+    if(!musicaFondo.src) cargarPista(indicePista);
+    const enPartido = document.getElementById("vista-partido")?.classList.contains("activa");
+    ajustarVolumenSegunVista(enPartido ? "partido" : "menu");
+    musicaFondo.play().catch(() => {});
+  }
+  actualizarBotonSonido();
+}, { once: true });
+
+document.addEventListener("DOMContentLoaded", actualizarBotonSonido);
+
+/* ---------------------------------------------------------------------
+   PUNTO DE ENTRADA SEGURO PARA script.js
+   script.js nunca llama a las funciones de acá arriba directamente
+   por nombre — llama a través de "window.Sonido?.algo?.()". Así, si
+   algo de esto fallara, el partido y el resto del juego siguen
+   andando normal, simplemente sin sonido, en vez de romperse.
+   --------------------------------------------------------------------- */
+window.Sonido = {
+  silbato: sonidoSilbato,
+  evento: reproducirSonidoEvento,
+  ajustarVista: ajustarVolumenSegunVista,
+  asegurarReproduccion: asegurarMusicaSonando,
+  toggleMute: toggleSonido,
+  togglePlaylist: togglePanelPlaylist,
+  siguiente: pistaSiguiente,
+  anterior: pistaAnterior,
+  reproducirPista: reproducirPista,
+  actualizarBoton: actualizarBotonSonido
+};
+
+/* ---------------------------------------------------------------------
+   DIAGNÓSTICO
+   Escribí esto en la consola del navegador (F12 → "Console") para
+   ver, uno por uno, qué archivos de sonido encontró el juego y
+   cuáles le faltan:
+
+     verificarSonidos()
+   --------------------------------------------------------------------- */
+window.verificarSonidos = function(){
+  const todos = {};
+  Object.entries(EFECTOS_REALES).forEach(([clave, ruta]) => { todos["efecto: " + clave] = ruta; });
+  PLAYLIST.forEach((t, i) => { todos[`playlist ${i + 1}: ${t.nombre}`] = t.archivo; });
+
+  console.log("Revisando archivos de sonido... (los resultados van a ir apareciendo abajo)");
+  Object.entries(todos).forEach(([nombre, ruta]) => {
+    const audio = new Audio();
+    audio.addEventListener("canplaythrough", () => console.log("✅", nombre, "→", ruta), { once: true });
+    audio.addEventListener("error", () => console.warn("❌ falta o no se pudo cargar:", nombre, "→", ruta), { once: true });
+    audio.src = ruta;
+  });
+};
+
+</script>
+<script src="script.js"></script>
+</body>
+</html>
