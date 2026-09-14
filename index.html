@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Football Manager</title>
+<title>Football Legacy</title>
+<link rel="icon" type="image/png" href="logolegacy.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilos.css" />
@@ -13,19 +14,18 @@
 <!-- ======================= PANTALLA DE INICIO (portada) ======================= -->
 <section id="pantalla-inicio" class="pantalla activa">
   <div class="portada">
-    <img src="imagenes/Banner-futbol.jpg" alt="Football Manager" class="portada-imagen" onerror="this.style.display='none'" />
+    <img src="imagenes/Banner-futbol.jpg" alt="Football Legacy" class="portada-imagen" onerror="this.style.display='none'" />
     <div class="portada-overlay">
       <div class="portada-marca">
-        
+        <img src="imagenes/logolegacy.png" alt="Football Legacy" class="logo-portada" />
       </div>
-      <h1 class="portada-titulo">FOOTBALL MANAGER</h1>
-      <p class="portada-subtitulo">Elegí tu club, armá tu plantel y salí campeón</p>
+      <h1 class="portada-titulo sr-solo">Football Legacy</h1>
     </div>
   </div>
 
   <div class="portada-contenido">
     <p class="portada-texto">
-      Football Manager es un juego de gestión donde vos sos el director técnico.
+      Football Legacy es un juego de gestión donde vos sos el director técnico.
       Elegís una liga real (Argentina, España o Inglaterra), te hacés cargo de uno
       de sus 20 equipos —con presupuesto y jugadores reales— y jugás fecha a fecha,
       temporada tras temporada, hasta convertirte en campeón.
@@ -67,9 +67,9 @@
 <section id="pantalla-auth" class="pantalla">
   <div class="tarjeta">
     <div class="marca-login">
-      <span class="insignia-marca insignia-marca--chica">FM</span>
+      <img src="logolegacy.png" alt="Football Legacy" class="logo-login" />
     </div>
-    <h1 class="titulo-grande">FOOTBALL MANAGER</h1>
+    <h1 class="titulo-grande sr-solo">Football Legacy</h1>
     <p class="subtitulo">Elegí tu club y jugá tu temporada</p>
 
     <div class="tabs">
@@ -118,7 +118,10 @@
 
   <header class="topbar">
     <div>
-      <p class="nombre-club" id="hud-club">—</p>
+      <div class="topbar-marca">
+        <img src="logolegacy.png" alt="" class="topbar-logo" />
+        <p class="nombre-club" id="hud-club">—</p>
+      </div>
       <p class="info-club" id="hud-info">Temporada 1 · Fecha 1</p>
     </div>
     <div class="topbar-der">
@@ -609,28 +612,6 @@ window.Sonido = {
   anterior: pistaAnterior,
   reproducirPista: reproducirPista,
   actualizarBoton: actualizarBotonSonido
-};
-
-/* ---------------------------------------------------------------------
-   DIAGNÓSTICO
-   Escribí esto en la consola del navegador (F12 → "Console") para
-   ver, uno por uno, qué archivos de sonido encontró el juego y
-   cuáles le faltan:
-
-     verificarSonidos()
-   --------------------------------------------------------------------- */
-window.verificarSonidos = function(){
-  const todos = {};
-  Object.entries(EFECTOS_REALES).forEach(([clave, ruta]) => { todos["efecto: " + clave] = ruta; });
-  PLAYLIST.forEach((t, i) => { todos[`playlist ${i + 1}: ${t.nombre}`] = t.archivo; });
-
-  console.log("Revisando archivos de sonido... (los resultados van a ir apareciendo abajo)");
-  Object.entries(todos).forEach(([nombre, ruta]) => {
-    const audio = new Audio();
-    audio.addEventListener("canplaythrough", () => console.log("✅", nombre, "→", ruta), { once: true });
-    audio.addEventListener("error", () => console.warn("❌ falta o no se pudo cargar:", nombre, "→", ruta), { once: true });
-    audio.src = ruta;
-  });
 };
 
 </script>

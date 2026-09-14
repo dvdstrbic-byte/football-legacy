@@ -98,6 +98,13 @@ button, input, select{ font-family: inherit; }
 }
 .insignia-marca--chica{ width: 46px; height: 46px; font-size: 17px; box-shadow: none; }
 
+/* Texto que sigue existiendo para lectores de pantalla, pero no se ve
+   en la pantalla (el logo real ya muestra el nombre del juego) */
+.sr-solo{
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+}
+
 /* ---------- FLECHAS TIPOGRÁFICAS (reemplazan íconos de dirección) ---------- */
 .flecha-texto{
   display: inline-block;
@@ -138,6 +145,7 @@ button, input, select{ font-family: inherit; }
   color: var(--amarillo);
   margin-bottom: 6px;
 }
+.logo-login{ width: 100%; max-width: 220px; height: auto; display: block; }
 .titulo-grande{ font-family: var(--fuente-titulo); font-size: 34px; margin: 0 0 4px; letter-spacing: 1px; }
 .subtitulo{ color: var(--texto-suave); font-size: 13.5px; margin: 0 0 22px; }
 
@@ -262,6 +270,8 @@ img.escudo-equipo{
 }
 .nombre-club{ margin: 0; font-weight: 800; font-size: 14.5px; }
 .info-club{ margin: 2px 0 0; font-size: 12px; color: var(--texto-suave); }
+.topbar-marca{ display: flex; align-items: center; gap: 7px; }
+.topbar-logo{ width: 26px; height: auto; flex-shrink: 0; }
 .topbar-der{ display: flex; align-items: center; gap: 8px; }
 .topbar-der .boton-chico{ padding: 7px 10px; }
 .hud-plata{ margin: 0; font-family: var(--fuente-titulo); color: var(--amarillo); font-size: 18px; letter-spacing: 0.5px; }
@@ -565,12 +575,11 @@ img.escudo-equipo{
     var(--fondo) 92%);
 }
 .portada-marca{ margin-bottom: 10px; }
+.logo-portada{ width: 100%; max-width: 380px; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.5)); }
 .portada-titulo{ font-family: var(--fuente-titulo); font-size: 38px; margin: 0 0 6px; letter-spacing: 1.2px; }
-.portada-subtitulo{ margin: 0; font-size: 14px; color: var(--texto-suave); }
 
 .portada-contenido{ max-width: 720px; margin: 0 auto; padding: 26px 18px 40px; }
 .portada-texto{ font-size: 14px; line-height: 1.65; color: var(--texto); margin: 0 0 26px; }
-.portada-subtitulo-seccion{ font-family: var(--fuente-titulo); font-size: 20px; margin: 0 0 14px; letter-spacing: 0.5px; }
 .portada-pasos{ display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
 .portada-paso{
   display: flex; gap: 12px; align-items: flex-start;
