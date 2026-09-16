@@ -83,21 +83,6 @@ button, input, select{ font-family: inherit; }
   background-color: var(--amarillo);
 }
 
-/* ---------- INSIGNIA DE MARCA (reemplaza el logo/ícono de pelota) ---------- */
-.insignia-marca{
-  width: 60px; height: 60px;
-  border-radius: 50%;
-  background: var(--amarillo);
-  color: var(--amarillo-texto);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--fuente-titulo);
-  font-size: 22px;
-  letter-spacing: 1px;
-  box-shadow: var(--sombra-flotante);
-  margin: 0 auto;
-}
-.insignia-marca--chica{ width: 46px; height: 46px; font-size: 17px; box-shadow: none; }
-
 /* Texto que sigue existiendo para lectores de pantalla, pero no se ve
    en la pantalla (el logo real ya muestra el nombre del juego) */
 .sr-solo{
@@ -242,17 +227,6 @@ button, input, select{ font-family: inherit; }
 img.escudo-equipo{
   object-fit: contain;
 }
-.escudo-fallback{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--fuente-titulo);
-  color: var(--amarillo);
-  font-weight: 700;
-  border-radius: 50%;
-  background: var(--tarjeta-clara, rgba(255,255,255,0.06));
-  border: 1px solid var(--borde);
-}
 .escudo-chico{ width: 20px; height: 20px; font-size: 9px; margin-right: 6px; }
 .escudo-mediano{ width: 34px; height: 34px; font-size: 12px; margin-right: 10px; }
 .escudo-grande{ width: 56px; height: 56px; font-size: 18px; margin-right: 0; }
@@ -264,6 +238,7 @@ img.escudo-equipo{
 .app.activa{ display: flex; }
 
 .topbar{
+  position: relative;
   display: flex; align-items: center; justify-content: space-between;
   padding: 13px 16px; background: rgba(0,0,0,0.28); border-bottom: 1px solid var(--borde);
   flex-shrink: 0;
@@ -271,6 +246,7 @@ img.escudo-equipo{
 .nombre-club{ margin: 0; font-weight: 800; font-size: 14.5px; }
 .info-club{ margin: 2px 0 0; font-size: 12px; color: var(--texto-suave); }
 .topbar-marca{ display: flex; align-items: center; gap: 7px; }
+
 .topbar-der{ display: flex; align-items: center; gap: 8px; }
 .topbar-der .boton-chico{ padding: 7px 10px; }
 .hud-plata{ margin: 0; font-family: var(--fuente-titulo); color: var(--amarillo); font-size: 18px; letter-spacing: 0.5px; }

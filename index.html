@@ -4,7 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Football Legacy</title>
-<link rel="icon" type="image/png" href="imagenes/logolegacy.png" />
+<link rel="icon" type="image/png" href="imagenes/favicon.png" />
+<link rel="apple-touch-icon" href="imagenes/icono-legacy-256.png" />
+<link rel="manifest" href="manifest.json" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilos.css" />
@@ -14,7 +16,7 @@
 <!-- ======================= PANTALLA DE INICIO (portada) ======================= -->
 <section id="pantalla-inicio" class="pantalla activa">
   <div class="portada">
-    <img src="imagenes/Banner-futbol.jpg" alt="Football Legacy" class="portada-imagen" onerror="this.style.display='none'" />
+    <img src="imagenes/Banner-futbol.jpg" alt="Football Legacy" class="portada-imagen" />
     <div class="portada-overlay">
       <div class="portada-marca">
         <img src="imagenes/logolegacy.png" alt="Football Legacy" class="logo-portada" />
@@ -126,17 +128,17 @@
     <div class="topbar-der">
       <p class="hud-plata" id="hud-plata">$0</p>
       <div class="control-musica">
-        <button class="boton boton-chico" id="btn-playlist" onclick="window.Sonido?.togglePlaylist?.()">🎵</button>
+        <button class="boton boton-chico" id="btn-playlist" onclick="togglePanelPlaylist()">🎵</button>
         <div class="panel-playlist" id="panel-playlist" style="display:none;">
           <p class="playlist-titulo">Música</p>
           <div class="playlist-controles">
-            <button class="boton boton-chico" onclick="window.Sonido?.anterior?.()">◀ Anterior</button>
-            <button class="boton boton-chico" onclick="window.Sonido?.siguiente?.()">Siguiente ▶</button>
+            <button class="boton boton-chico" onclick="pistaAnterior()">◀ Anterior</button>
+            <button class="boton boton-chico" onclick="pistaSiguiente()">Siguiente ▶</button>
           </div>
           <div class="playlist-lista" id="playlist-lista"></div>
         </div>
       </div>
-      <button class="boton boton-chico boton-sonido" id="btn-sonido" onclick="window.Sonido?.toggleMute?.()">🔊</button>
+      <button class="boton boton-chico boton-sonido" id="btn-sonido" onclick="toggleSonido()">🔊</button>
       <button class="boton boton-chico" onclick="cerrarSesion()">Salir</button>
     </div>
   </header>
@@ -385,45 +387,23 @@
 </div>
 
 <script>
-/* =========================================================================
-   SONIDO
-   -------------------------------------------------------------------------
-   Todo el sonido de acá sale de archivos reales que VOS pongas. No
-   hay ningún sonido generado por código como respaldo: si no ponés
-   un archivo para algo puntual, ese algo simplemente no suena (nada
-   se rompe, solo queda en silencio esa parte).
+/* SONIDO — todo sale de archivos reales que vos pongas (sin sonido
+   sintetizado de respaldo: si falta un archivo, esa parte queda
+   muda, sin romper nada). Escribí verificarSonidos() en la consola
+   para ver qué archivos encontró.
 
-   MÚSICA DE FONDO (varios temas, playlist)
-     Carpeta "musica" al lado de index.html. Agregá tus temas acá:
+   MÚSICA (carpeta "musica"): sumá temas a PLAYLIST, acá abajo.
 
-       const PLAYLIST = [
-         { nombre: "Mi tema", archivo: "musica/mitema.mp3" },
-         ...
-       ];
-
-   EFECTOS DE PARTIDO
-     Carpeta "efectos" al lado de index.html, con estos nombres
-     exactos (agregá los que quieras, ninguno es obligatorio):
-
-       efectos/silbato.mp3        -> arranque y final del partido
-       efectos/gol.mp3            -> cuando VOS metés un gol
-       efectos/gol_rival.mp3      -> cuando te hacen un gol
-       efectos/penal.mp3          -> penal cobrado a tu favor
-       efectos/penal_errado.mp3   -> penal errado
-       efectos/amarilla.mp3       -> tarjeta amarilla
-       efectos/roja.mp3           -> tarjeta roja
-       efectos/cambio.mp3         -> cambio de jugador
-       efectos/lesion.mp3         -> lesión
-
-   Para revisar qué archivos encontró el juego, abrí la consola del
-   navegador (F12) y escribí:  verificarSonidos()
-   ========================================================================= */
+   EFECTOS (carpeta "efectos", ninguno obligatorio):
+     silbato.mp3 · gol.mp3 · gol_rival.mp3 · penal.mp3
+     penal_errado.mp3 · amarilla.mp3 · roja.mp3 · cambio.mp3 · lesion.mp3 */
 
 const PLAYLIST = [
-  { nombre: "Tema 1", archivo: "musica/wakawaka.mp3" },
-  { nombre: "Tema 2", archivo: "musica/lovemeagain.mp3" },
-  { nombre: "Tema 3", archivo: "musica/tema3.mp3" }
-  /* Agregá más acá, con la misma forma. */
+  { nombre: "Waka waka", archivo: "musica/wakawaka.mp3" },
+  { nombre: "Toco y me voy", archivo: "musica/tocoymevoy.mp3" },
+  { nombre: "Me rehuso", archivo: "musica/merehuso.mp3" },
+  { nombre: "Feet don't fail me now", archivo: "musica/feetdontfailmenow.mp3" },
+  { nombre: "Love me again", archivo: "musica/lovemeagain.mp3" }
 ];
 
 const EFECTOS_REALES = {
@@ -483,12 +463,8 @@ function reproducirSonidoEvento(evento){
   }
 }
 
-/* ---------------------------------------------------------------------
-   MÚSICA DE FONDO (playlist)
-   Un solo <audio>, siempre el mismo: cambiar de pantalla (Inicio,
-   Mercado, un partido...) nunca lo pausa ni lo reinicia, solo le
-   ajustamos el volumen. Cambiar de tema sí lo hace, obviamente.
-   --------------------------------------------------------------------- */
+/* Música de fondo: un solo <audio> que nunca se pausa al cambiar de
+   pantalla, solo le ajustamos el volumen (más bajo en un partido). */
 let indicePista = parseInt(localStorage.getItem("fm_pista"), 10);
 if(isNaN(indicePista) || indicePista < 0 || indicePista >= PLAYLIST.length) indicePista = 0;
 
@@ -496,11 +472,6 @@ const musicaFondo = new Audio();
 musicaFondo.volume = VOLUMEN_MENU;
 
 musicaFondo.addEventListener("ended", () => reproducirPista(indicePista + 1));
-musicaFondo.addEventListener("error", () => {
-  // El archivo de este tema no existe o no se pudo cargar: pasamos
-  // al siguiente para no dejar todo en silencio por un solo archivo.
-  if(PLAYLIST.length > 1) reproducirPista(indicePista + 1, true);
-});
 
 function cargarPista(indice){
   indicePista = ((indice % PLAYLIST.length) + PLAYLIST.length) % PLAYLIST.length;
@@ -539,7 +510,7 @@ function pintarPanelPlaylist(){
   const lista = document.getElementById("playlist-lista");
   if(!lista) return;
   lista.innerHTML = PLAYLIST.map((t, i) => `
-    <button class="opcion-playlist ${i === indicePista ? "activa" : ""}" onclick="window.Sonido?.reproducirPista?.(${i})">${t.nombre}</button>
+    <button class="opcion-playlist ${i === indicePista ? "activa" : ""}" onclick="reproducirPista(${i})">${t.nombre}</button>
   `).join("");
 }
 function actualizarPanelPlaylist(){ pintarPanelPlaylist(); }
@@ -592,26 +563,6 @@ document.addEventListener("click", () => {
 }, { once: true });
 
 document.addEventListener("DOMContentLoaded", actualizarBotonSonido);
-
-/* ---------------------------------------------------------------------
-   PUNTO DE ENTRADA SEGURO PARA script.js
-   script.js nunca llama a las funciones de acá arriba directamente
-   por nombre — llama a través de "window.Sonido?.algo?.()". Así, si
-   algo de esto fallara, el partido y el resto del juego siguen
-   andando normal, simplemente sin sonido, en vez de romperse.
-   --------------------------------------------------------------------- */
-window.Sonido = {
-  silbato: sonidoSilbato,
-  evento: reproducirSonidoEvento,
-  ajustarVista: ajustarVolumenSegunVista,
-  asegurarReproduccion: asegurarMusicaSonando,
-  toggleMute: toggleSonido,
-  togglePlaylist: togglePanelPlaylist,
-  siguiente: pistaSiguiente,
-  anterior: pistaAnterior,
-  reproducirPista: reproducirPista,
-  actualizarBoton: actualizarBotonSonido
-};
 
 </script>
 <script src="script.js"></script>

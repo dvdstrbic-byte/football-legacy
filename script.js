@@ -1,20 +1,12 @@
-/* =====================================================================
-   FOOTBALL MANAGER - script.js
-   Todo el estado del juego se guarda en localStorage, en un objeto
-   donde cada "clave" es el email del usuario. Así, cuando alguien
-   inicia sesión de nuevo con su email y contraseña, recupera su
-   partida completa (plantel, presupuesto, copa, tabla, etc).
-   ===================================================================== */
+/* FOOTBALL MANAGER — script.js
+   El estado del juego se guarda en localStorage, con el email del
+   usuario como clave, así cada uno recupera su partida al iniciar
+   sesión de nuevo. */
 
 /* ---------------------------------------------------------------------
    1) LIGAS Y EQUIPOS DISPONIBLES
    --------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------
-   1) LIGAS, EQUIPOS Y MERCADO
-   Estos datos ya NO están escritos a mano: se cargan desde datos.json
-   (el archivo que exportamos desde MySQL Workbench). Arrancan vacíos
-   y se completan al llamar a cargarDatosDelJuego().
-   --------------------------------------------------------------------- */
+/* 1) LIGAS, EQUIPOS Y MERCADO — se cargan desde datos.json */
 let LIGAS = [];
 let POOL_MERCADO = [];
 
@@ -34,11 +26,7 @@ const FORMACIONES = {
   "3-5-2": { DEF: 3, MED: 5, DEL: 2 }
 };
 
-/* ---------------------------------------------------------------------
-   1-C) FASES DE LA COPA NACIONAL
-   Orden de las fases, su nombre para mostrar en pantalla, y el
-   premio en dinero que se gana al ganar cada una.
-   --------------------------------------------------------------------- */
+/* 1-C) FASES DE LA COPA NACIONAL */
 const FASES_COPA = ["previa", "octavos", "cuartos", "semifinal", "final"];
 
 const NOMBRE_FASE = {
@@ -138,8 +126,8 @@ function irAPantalla2(nombreVista){
   if(nombreVista === "ranking") pintarRanking();
   if(nombreVista === "perfil") mostrarPerfil();
 
-  window.Sonido?.ajustarVista?.(nombreVista === "partido" ? "partido" : "menu");
-  window.Sonido?.asegurarReproduccion?.();
+  ajustarVolumenSegunVista(nombreVista === "partido" ? "partido" : "menu");
+  asegurarMusicaSonando();
 }
 
 function mostrarTab(tab){
@@ -273,13 +261,7 @@ function formatearPlata(numero){
   return "$" + (numero / 1000000).toFixed(numero % 1000000 === 0 ? 0 : 1) + "M";
 }
 
-/* ---------------------------------------------------------------------
-   8-A) NOTICIAS DEL CLUB
-   Un feed simple: cada vez que pasa algo relevante (una racha de
-   goles, una lesión, una oferta recibida, un sorteo de Copa) se
-   agrega acá arriba de todo. Se muestran en el Inicio, las últimas
-   primero, y se recorta la lista para que no crezca sin límite.
-   --------------------------------------------------------------------- */
+/* 8-A) NOTICIAS DEL CLUB */
 const EMOJI_NOTICIA = { gol: "⚽", fichaje: "💰", lesion: "🏥", copa: "🏆" };
 
 function agregarNoticia(club, texto, tipo){
@@ -288,27 +270,7 @@ function agregarNoticia(club, texto, tipo){
   if(club.noticias.length > 20) club.noticias.length = 20;
 }
 
-/* ---------------------------------------------------------------------
-   8-B) ESCUDOS DE LOS EQUIPOS
-   El link de cada escudo sale del propio equipo en datos.json: le
-   agregás un campo "escudo" con la URL (o ruta) de la imagen que
-   vos elijas, por ejemplo:
-
-     { "nombre": "River Plate", "presupuesto": 45000000, ...,
-       "escudo": "https://tu-link-o-carpeta/river.png" }
-
-   Si un equipo no tiene ese campo cargado todavía, se muestra un
-   círculo con sus iniciales en vez de romper la pantalla.
-   --------------------------------------------------------------------- */
-function inicialesEquipo(nombre){
-  return (nombre || "")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(p => p[0])
-    .join("")
-    .toUpperCase();
-}
+/* 8-B) ESCUDOS DE LOS EQUIPOS — campo "escudo" en datos.json. */
 
 // Busca el objeto del equipo (con su .escudo) a partir de un nombre,
 // mirando primero el club actual (uno mismo, rivales y otrosEquipos)
@@ -345,29 +307,17 @@ function escudoEquipoHTML(equipoONombre, tamano, club){
     escudo = encontrado ? encontrado.escudo : null;
   }
   const clase = "escudo-equipo" + (tamano ? " escudo-" + tamano : "");
-  const iniciales = inicialesEquipo(nombre);
-  if(!escudo){
-    return `<span class="${clase} escudo-fallback">${iniciales}</span>`;
-  }
-  return `<img src="${escudo}" alt="${nombre}" class="${clase}"
-    onerror="this.outerHTML='<span class=&quot;${clase} escudo-fallback&quot;>${iniciales}</span>'" />`;
+  return `<img src="${escudo}" alt="${nombre}" class="${clase}" />`;
 }
 
-/* ---------------------------------------------------------------------
-   9) CREACIÓN DE JUGADORES Y PLANTEL
-   Solo se usan los jugadores reales que vienen en datos.json para
-   cada equipo. No se generan jugadores de relleno inventados.
-   Los fallbacks de abajo (edad/valor por defecto) quedan solo como
-   red de seguridad por si algún jugador del JSON queda incompleto;
-   con datos.json ya completo no deberían usarse nunca.
-   --------------------------------------------------------------------- */
+/* 9) CREACIÓN DE JUGADORES Y PLANTEL — todos salen de datos.json */
 function crearJugadorReal(real){
   return {
     id: "j" + Date.now() + numeroAleatorio(1, 99999),
     nombre: real.nombre, puesto: real.puesto,
-    edad: real.edad != null ? real.edad : numeroAleatorio(23, 34),
+    edad: real.edad,
     nivel: real.nivel,
-    valor: real.valor != null ? real.valor : real.nivel * 380000 + numeroAleatorio(0, 4000000),
+    valor: real.valor,
     esReal: true, lesionado: 0
   };
 }
@@ -375,11 +325,7 @@ function crearPlantelInicial(equipo){
   return (equipo.real || []).map(real => crearJugadorReal(real));
 }
 
-/* ---------------------------------------------------------------------
-   8-B) OBJETIVOS DE TEMPORADA
-   Se generan al arrancar el club y al comenzar cada nueva temporada,
-   según el nivel del equipo. Se evalúan al cerrar la temporada.
-   --------------------------------------------------------------------- */
+/* 8-B) OBJETIVOS DE TEMPORADA — se generan al arrancar cada temporada */
 function generarObjetivosTemporada(club){
   const calidad = club.calidadBase;
 
@@ -405,11 +351,8 @@ function generarObjetivosTemporada(club){
   };
 }
 
-/* Progreso EN VIVO (para mostrar en la pantalla de Inicio durante la temporada).
-   Mientras la temporada está en curso no se marca nada como cumplido
-   o no: del otro lado de cada fila se muestra el estado actual (esto
-   sí se evalúa como cumplido/no cumplido recién al cerrar la
-   temporada, en evaluarObjetivos). */
+/* Progreso EN VIVO para el Inicio: no marca cumplido/no cumplido
+   hasta cerrar la temporada (eso lo hace evaluarObjetivos). */
 function calcularProgresoObjetivos(club){
   if(!club.objetivosTemporada) return [];
   const obj = club.objetivosTemporada;
@@ -863,13 +806,7 @@ function cambiarTabMercado(tab){
   mostrarMercado();
 }
 
-/* ---------------------------------------------------------------------
-   15-A) BUSCADOR Y FILTROS DEL MERCADO
-   Filtran, del lado del cliente, la lista que ya se está mostrando
-   (las ofertas de "Comprar", tu plantel en "Vender", o el plantel
-   del rival elegido en "Fichar"). No tocan la economía del juego,
-   solo lo que se ve en pantalla.
-   --------------------------------------------------------------------- */
+/* 15-A) BUSCADOR Y FILTROS DEL MERCADO — filtran del lado del cliente */
 const NOMBRE_POSICION_FILTRO = { POR: "Arqueros", DEF: "Defensores", MED: "Mediocampistas", DEL: "Delanteros" };
 
 function toggleFiltrosMercado(){
@@ -1096,13 +1033,7 @@ function venderJugador(idJugador){
   mostrarAviso("Vendiste a " + jugador.nombre + " por " + formatearPlata(precioVenta) + " 💰");
 }
 
-/* ---------------------------------------------------------------------
-   15-B) OFERTAS RECIBIDAS POR TUS JUGADORES
-   Cada fecha hay una chance de que un club (de cualquier liga) haga
-   una oferta por alguno de tus jugadores. Podés rechazarla, aceptarla
-   o negociar (pedir más plata) — en ese caso te responden la fecha
-   siguiente, con una nueva oferta, la que pediste, o retirándose.
-   --------------------------------------------------------------------- */
+/* 15-B) OFERTAS RECIBIDAS POR TUS JUGADORES — aceptar / rechazar / negociar */
 function elegirPonderado(lista, pesos){
   const total = pesos.reduce((a, b) => a + b, 0);
   if(total <= 0) return elegirAlAzar(lista);
@@ -1241,13 +1172,7 @@ function responderOferta(idOferta, accion){
   mostrarMercado();
 }
 
-/* ---------------------------------------------------------------------
-   15-C) FICHAR JUGADORES DE OTROS CLUBES DE TU LIGA
-   Entrás al plantel de un rival y ofertás por un jugador. La
-   respuesta (aceptada / contraoferta / rechazada) llega la fecha
-   siguiente, según cuán buena sea tu oferta comparada con el valor
-   real del jugador (ya viene cargado desde datos.json).
-   --------------------------------------------------------------------- */
+/* 15-C) FICHAR JUGADORES DE OTROS CLUBES DE TU LIGA */
 function verPlantelParaFichar(nombreEquipo){
   const club = usuario().club;
   club.equipoFichando = nombreEquipo;
@@ -1355,11 +1280,8 @@ function hacerOferta(equipoVendedor, nombreJugador, puesto, nivel, valorReal){
   mostrarFichar(club);
 }
 
-/* Busca en el mercado un reemplazo para el rival que acaba de vender
-   un jugador, usando el presupuesto que le quedó disponible (el que
-   ya tenía + lo que le pagaste). Prioriza un jugador del mismo puesto
-   que el que se fue; si no hay ninguno que pueda pagar, prueba con
-   cualquier puesto; si tampoco alcanza, no ficha a nadie. */
+/* Busca reemplazo para el rival que vendió un jugador, priorizando
+   el mismo puesto y lo que le alcance el presupuesto. */
 function rivalFichaReemplazo(rival, puestoNecesario){
   if(!rival) return;
   rival.real = rival.real || [];
@@ -1802,7 +1724,7 @@ function iniciarSimulacionEnVivo(datos){
   };
 
   irAPantalla2("partido");
-  window.Sonido?.silbato?.();
+  sonidoSilbato();
   simulacionActual.timer = setInterval(avanzarMinuto, 180);
 }
 
@@ -1826,7 +1748,7 @@ function mostrarEventoEnVivo(evento){
   if(evento.tipo === "gol" && evento.mio && !evento.texto) resolverGolEnVivo(evento);
   if(evento.tipo === "lesion") aplicarLesionEnVivo(evento);
   if(evento.tipo === "cambio") aplicarCambioEnVivo(evento);
-  window.Sonido?.evento?.(evento);
+  reproducirSonidoEvento(evento);
 
   if(evento.tipo === "gol"){
     if(evento.mio){ sim.golesMios++; document.getElementById("partido-goles-local").textContent = sim.golesMios; }
@@ -1880,7 +1802,7 @@ function finalizarSimulacion(){
   const sim = simulacionActual;
   if(!sim) return;
   clearInterval(sim.timer);
-  window.Sonido?.silbato?.();
+  sonidoSilbato();
 
   document.getElementById("btn-cambios").style.display = "none";
   document.getElementById("panel-cambios").style.display = "none";
@@ -1962,18 +1884,10 @@ function registrarRachaGoles(club, sim){
   }
 }
 
-/* ---------------------------------------------------------------------
-   16-C) AJUSTES EN VIVO: mentalidad y formación
-   Los cambios de jugadores (sale uno, entra otro del mismo puesto)
-   ahora son automáticos: se sortean solos durante el partido, no
-   hace falta elegirlos a mano. Este panel solo deja tocar la
-   mentalidad y la formación mientras se juega.
-   OJO: el resultado final del partido ya está decidido cuando arranca
-   la simulación (los goles y sus minutos se sortean antes). Lo que la
-   mentalidad SÍ modifica en vivo es quién termina anotando cada gol
-   propio de acá en adelante (le da más chances a los delanteros si
-   jugás "ofensiva", por ejemplo).
-   --------------------------------------------------------------------- */
+/* 16-C) AJUSTES EN VIVO: mentalidad y formación.
+   El resultado ya está decidido al arrancar la simulación; la
+   mentalidad solo influye en quién anota los goles propios de acá
+   en adelante (favorece a los delanteros en "ofensiva", etc). */
 function togglePanelCambios(){
   const panel = document.getElementById("panel-cambios");
   if(!panel) return;
@@ -2736,66 +2650,28 @@ function pintarHistorial(){
     : '<p class="vacio">Todavía no completaste ninguna temporada.</p>';
 }
 
-/* ---------------------------------------------------------------------
-   25) RANKING GLOBAL
-   -------------------------------------------------------------------------
-   Hay dos fuentes de datos:
-
-   1) LOCAL: las cuentas guardadas en este navegador (obtenerRankingGlobal).
-      Siempre funciona, pero solo ve lo que se jugó en este aparato.
-
-   2) ONLINE (jsonbin.io): un JSON compartido en internet. Cada vez que
-      termina un partido, tu club manda un resumen (nombre, club, copas,
-      puntos, presupuesto) ahí. La pantalla de Ranking lee ese JSON
-      compartido, así que ve a TODOS los que jueguen, desde cualquier
-      dispositivo — no solo los de este navegador.
-
-   CÓMO ACTIVARLO (una sola vez):
-     1) Entrá a https://jsonbin.io y create una cuenta gratis.
-     2) Creá un bin nuevo (botón "Create Bin") con este contenido
-        exacto:   {"jugadores": {}}
-     3) Al crearlo te muestra el "Bin ID" — copialo.
-     4) Andá a tu cuenta → "API Keys" y copiá tu "X-Master-Key".
-     5) Pegá esos dos valores en JSONBIN_BIN_ID y JSONBIN_API_KEY, acá
-        abajo, reemplazando el texto de ejemplo.
-
-   LIMITACIÓN A TENER EN CUENTA: esa clave queda visible en el código
-   fuente de la página (cualquiera puede verla con "Ver código fuente"
-   o las herramientas de desarrollador). Es el precio de que sea
-   simple, sin servidor propio: en teoría alguien podría escribir
-   datos falsos en el ranking. Para un juego de hobby no es grave,
-   pero no reutilices esa clave para nada más importante.
-
-   Si no configurás nada (dejás los valores de ejemplo), el juego
-   sigue funcionando exactamente como antes: ranking solo local, sin
-   romperse ni tirar errores visibles.
-   --------------------------------------------------------------------- */
+/* 25) RANKING GLOBAL — se sincroniza con jsonbin.io después de cada partido. */
 const JSONBIN_BIN_ID = "6aa85f2fac6210605acd3138";
 const JSONBIN_API_KEY = "$2a$10$QwmyC.S2vCo8Zwhy3XJ3nOlRKYgIcQ0lJRZywToWyPFq.Ysl9WXyC";
-const JSONBIN_CONFIGURADO = JSONBIN_BIN_ID !== "6aa85f2fac6210605acd3138" && JSONBIN_API_KEY !== "$2a$10$QwmyC.S2vCo8Zwhy3XJ3nOlRKYgIcQ0lJRZywToWyPFq.Ysl9WXyC";
+/* Revisa que haya algo cargado y que no sea el placeholder original
+   (comparar contra el texto de ejemplo exacto se rompía al pegar
+   los valores reales encima de ese mismo texto). */
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
-/* Trae el objeto { jugadores: {...} } compartido. Devuelve null si no
-   está configurado o si falló la conexión (sin cortar el juego). */
 async function leerRankingOnline(){
-  if(!JSONBIN_CONFIGURADO) return null;
   try{
     const resp = await fetch(JSONBIN_URL + "/latest", {
       headers: { "X-Master-Key": JSONBIN_API_KEY }
     });
-    if(!resp.ok) throw new Error("HTTP " + resp.status);
     const datos = await resp.json();
-    return (datos.record && datos.record.jugadores) ? datos.record.jugadores : {};
-  }catch(err){
-    console.warn("No se pudo leer el ranking online, muestro solo el local:", err);
-    return null;
+    return datos.record.jugadores || {};
+  }catch{
+    return {};
   }
 }
 
-/* Actualiza (o crea) tu propia entrada dentro del JSON compartido.
-   Se llama sola después de cada partido — no hace falta tocar nada. */
+/* Actualiza tu propia entrada dentro del JSON compartido, después de cada partido. */
 async function sincronizarRankingOnline(){
-  if(!JSONBIN_CONFIGURADO) return;
   const club = usuario()?.club;
   if(!club) return;
   try{
@@ -2815,33 +2691,7 @@ async function sincronizarRankingOnline(){
       headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
       body: JSON.stringify({ jugadores })
     });
-  }catch(err){
-    console.warn("No se pudo actualizar el ranking online:", err);
-  }
-}
-
-/* Ranking de respaldo: solo las cuentas guardadas en ESTE navegador.
-   Se usa si jsonbin no está configurado, o si falla la conexión. */
-function obtenerRankingGlobal(){
-  const lista = [];
-  Object.keys(baseDeDatos).forEach(email => {
-    const cuenta = baseDeDatos[email];
-    if(!cuenta || !cuenta.club) return;
-    const club = cuenta.club;
-    const tabla = obtenerTablaOrdenada(club);
-    const miFila = tabla.find(f => f.nombre === club.nombre);
-    lista.push({
-      email: email,
-      nombre: email.split("@")[0],
-      club: club.nombre,
-      temporada: club.temporada,
-      puntos: miFila ? miFila.pts : 0,
-      copas: club.estadisticas.copas || 0,
-      presupuesto: club.presupuesto
-    });
-  });
-  lista.sort((a, b) => b.copas - a.copas || b.puntos - a.puntos || b.presupuesto - a.presupuesto);
-  return lista;
+  }catch{}
 }
 
 async function pintarRanking(){
@@ -2849,14 +2699,7 @@ async function pintarRanking(){
   contenedor.innerHTML = '<p class="vacio">Cargando ranking…</p>';
 
   const jugadoresOnline = await leerRankingOnline();
-  let lista, esOnline;
-  if(jugadoresOnline){
-    lista = Object.keys(jugadoresOnline).map(email => ({ email, ...jugadoresOnline[email] }));
-    esOnline = true;
-  } else {
-    lista = obtenerRankingGlobal();
-    esOnline = false;
-  }
+  const lista = Object.keys(jugadoresOnline).map(email => ({ email, ...jugadoresOnline[email] }));
   lista.sort((a, b) => b.copas - a.copas || b.puntos - a.puntos || b.presupuesto - a.presupuesto);
 
   if(!lista.length){
@@ -2864,9 +2707,7 @@ async function pintarRanking(){
     return;
   }
 
-  contenedor.innerHTML =
-    (esOnline ? "" : '<p class="info-mercado">Ranking local de este navegador — para verlo entre todos los dispositivos, activá jsonbin.io (ver comentario en script.js).</p>') +
-    lista.map((r, i) => {
+  contenedor.innerHTML = lista.map((r, i) => {
       // Solo se puede ver el perfil completo de cuentas que existen en
       // ESTE navegador (la tuya, u otra creada acá). El resto de
       // entradas online son solo el resumen, no el club entero.
