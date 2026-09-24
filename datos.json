@@ -2,6 +2,7 @@
   "ligas": [
     {
       "nombre": "Liga Argentina",
+      "escudo": "imagenes/argentina2.png",
       "equipos": [
         {
           "real": [
@@ -562,6 +563,7 @@
     },
    {
 "nombre": "Liga Española",
+"escudo": "imagenes/espana.png",
 "equipos": [
 {
 "real": [
@@ -1175,6 +1177,7 @@
 
     {
    "nombre": "Liga Inglesa",
+   "escudo": "imagenes/inglaterra.png",
    "equipos": [
     {
       "real": [
@@ -1363,12 +1366,35 @@
       "escudo": "./imagenes/equipos/tottenham.png"
     },
     {
-      "real": [],
-      "nombre": "Newcastle United",
-      "calidad": 85,
-      "presupuesto": 85000000,
-      "escudo": "./imagenes/equipos/newcastle.png"
-    },
+  "real": [
+    {"edad":34,"nivel":83,"valor":18000000,"nombre":"Nick Pope","puesto":"POR"},
+    {"edad":25,"nivel":77,"valor":11000000,"nombre":"Lukáš Horníček","puesto":"POR"},
+    {"edad":34,"nivel":73,"valor":2500000,"nombre":"Mark Gillespie","puesto":"POR"},
+    {"edad":23,"nivel":80,"valor":24000000,"nombre":"Tino Livramento","puesto":"DEF"},
+    {"edad":21,"nivel":78,"valor":18000000,"nombre":"Lewis Hall","puesto":"DEF"},
+    {"edad":26,"nivel":81,"valor":30000000,"nombre":"Sven Botman","puesto":"DEF"},
+    {"edad":34,"nivel":82,"valor":5000000,"nombre":"Fabian Schär","puesto":"DEF"},
+    {"edad":25,"nivel":79,"valor":22000000,"nombre":"Malick Thiaw","puesto":"DEF"},
+    {"edad":34,"nivel":78,"valor":3500000,"nombre":"Dan Burn","puesto":"DEF"},
+    {"edad":24,"nivel":78,"valor":18000000,"nombre":"Amar Dedić","puesto":"DEF"},
+    {"edad":22,"nivel":82,"valor":42000000,"nombre":"Nico González","puesto":"MED"},
+    {"edad":30,"nivel":84,"valor":30000000,"nombre":"Joelinton","puesto":"MED"},
+    {"edad":19,"nivel":75,"valor":10500000,"nombre":"Sean Steur","puesto":"MED"},
+    {"edad":31,"nivel":77,"valor":9000000,"nombre":"Jacob Murphy","puesto":"MED"},
+    {"edad":26,"nivel":76,"valor":11000000,"nombre":"Joe Willock","puesto":"MED"},
+    {"edad":20,"nivel":75,"valor":15000000,"nombre":"Lewis Miley","puesto":"MED"},
+    {"edad":29,"nivel":82,"valor":32000000,"nombre":"Yoane Wissa","puesto":"DEL"},
+    {"edad":28,"nivel":80,"valor":26000000,"nombre":"Harvey Barnes","puesto":"DEL"},
+    {"edad":24,"nivel":82,"valor":40000000,"nombre":"Anthony Elanga","puesto":"DEL"},
+    {"edad":23,"nivel":75,"valor":13000000,"nombre":"William Osula","puesto":"DEL"},
+    {"edad":21,"nivel":76,"valor":18000000,"nombre":"Matias Fernandez-Pardo","puesto":"DEL"},
+    {"edad":20,"nivel":74,"valor":12000000,"nombre":"Bazoumana Touré","puesto":"DEL"}
+  ],
+  "nombre":"Newcastle United",
+  "calidad":83,
+  "presupuesto":85000000,
+  "escudo":"./imagenes/equipos/newcastle.png"
+},
     {
       "real": [
         {"edad":33,"nivel":86,"valor":24000000,"nombre":"Emiliano Martínez","puesto":"POR"},
@@ -1764,6 +1790,14 @@
 ],
   "mercado": [
     {
+        "edad": 39,
+        "nivel": 99,
+        "valor": 10000000,
+        "nombre": "Liones Messi",
+        "puesto": "DEL"
+    },
+
+    {
         "edad": 38,
         "nivel": 80,
         "valor": 28000000,
@@ -1848,6 +1882,13 @@
         "puesto": "DEL"
     },
     {
+        "edad": 32,
+        "nivel": 80,
+        "valor": 28000000,
+        "nombre": "Rodrigo De Paul",
+        "puesto": "MED"
+    },
+    {
         "edad": 31,
         "nivel": 78,
         "valor": 28000000,
@@ -1905,8 +1946,8 @@
     },
     {
         "edad": 25,
-        "nivel": 82,
-        "valor": 33000000,
+        "nivel": 88,
+        "valor": 80000000,
         "nombre": "Vitinha",
         "puesto": "MED"
     },
@@ -2010,22 +2051,22 @@
     },
     {
         "edad": 25,
-        "nivel": 84,
+        "nivel": 81,
         "valor": 36000000,
         "nombre": "Rodrygo",
         "puesto": "DEL"
     },
     {
         "edad": 23,
-        "nivel": 84,
+        "nivel": 83,
         "valor": 37000000,
         "nombre": "Eduardo Camavinga",
         "puesto": "MED"
     },
     {
         "edad": 25,
-        "nivel": 81,
-        "valor": 33000000,
+        "nivel": 85,
+        "valor": 45000000,
         "nombre": "Alphonso Davies",
         "puesto": "DEF"
     },
@@ -2046,21 +2087,21 @@
     {
         "edad": 25,
         "nivel": 89,
-        "valor": 40000000,
+        "valor": 90000000,
         "nombre": "Khvicha Kvaratskhelia",
         "puesto": "DEL"
     },
     {
         "edad": 23,
         "nivel": 87,
-        "valor": 40000000,
+        "valor": 80000000,
         "nombre": "Florian Wirtz",
         "puesto": "MED"
     },
     {
         "edad": 24,
-        "nivel": 85,
-        "valor": 38000000,
+        "nivel": 90,
+        "valor": 130000000,
         "nombre": "Michael Olise",
         "puesto": "DEL"
     },
@@ -2168,6 +2209,622 @@
         "valor": 38000000,
         "nombre": "João Neves",
         "puesto": "MED"
-    }
- ]
+    },
+  {
+    "edad": 27,
+    "nivel": 84,
+    "valor": 42000000,
+    "nombre": "Marcus Thuram",
+    "puesto": "DEL"
+},
+{
+    "edad": 26,
+    "nivel": 84,
+    "valor": 45000000,
+    "nombre": "Federico Chiesa",
+    "puesto": "DEL"
+},
+{
+    "edad": 29,
+    "nivel": 84,
+    "valor": 42000000,
+    "nombre": "Mike Maignan",
+    "puesto": "POR"
+},
+{
+    "edad": 23,
+    "nivel": 85,
+    "valor": 60000000,
+    "nombre": "Nico Schlotterbeck",
+    "puesto": "DEF"
+},
+{
+    "edad": 23,
+    "nivel": 84,
+    "valor": 48000000,
+    "nombre": "Karim Adeyemi",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 84,
+    "valor": 47000000,
+    "nombre": "Serge Gnabry",
+    "puesto": "DEL"
+},
+{
+    "edad": 24,
+    "nivel": 83,
+    "valor": 42000000,
+    "nombre": "Douglas Luiz",
+    "puesto": "MED"
+},
+{
+    "edad": 27,
+    "nivel": 82,
+    "valor": 35000000,
+    "nombre": "Adrien Rabiot",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 84,
+    "valor": 42000000,
+    "nombre": "Khéphren Thuram",
+    "puesto": "MED"
+},
+{
+    "edad": 25,
+    "nivel": 83,
+    "valor": 39000000,
+    "nombre": "Manu Koné",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 84,
+    "valor": 43000000,
+    "nombre": "Jonathan David",
+    "puesto": "DEL"
+},
+{
+    "edad": 24,
+    "nivel": 82,
+    "valor": 34000000,
+    "nombre": "Fábio Silva",
+    "puesto": "DEL"
+},
+{
+    "edad": 30,
+    "nivel": 84,
+    "valor": 40000000,
+    "nombre": "Riyad Mahrez",
+    "puesto": "DEL"
+},
+{
+    "edad": 30,
+    "nivel": 83,
+    "valor": 35000000,
+    "nombre": "Sadio Mané",
+    "puesto": "DEL"
+},
+{
+    "edad": 29,
+    "nivel": 84,
+    "valor": 40000000,
+    "nombre": "Sergej Milinković-Savić",
+    "puesto": "MED"
+},
+{
+    "edad": 28,
+    "nivel": 84,
+    "valor": 38000000,
+    "nombre": "Malcom",
+    "puesto": "DEL"
+},
+{
+    "edad": 27,
+    "nivel": 82,
+    "valor": 32000000,
+    "nombre": "Rúben Neves",
+    "puesto": "MED"
+},
+{
+    "edad": 23,
+    "nivel": 83,
+    "valor": 36000000,
+    "nombre": "Marcos Leonardo",
+    "puesto": "DEL"
+},
+{
+    "edad": 27,
+    "nivel": 84,
+    "valor": 38000000,
+    "nombre": "Trincão",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 34000000,
+    "nombre": "Pedro Gonçalves",
+    "puesto": "MED"
+},
+{
+    "edad": 24,
+    "nivel": 83,
+    "valor": 36000000,
+    "nombre": "Gonçalo Inácio",
+    "puesto": "DEF"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 35000000,
+    "nombre": "Diomande",
+    "puesto": "DEF"
+},
+{
+    "edad": 22,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Geovany Quenda",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 83,
+    "valor": 37000000,
+    "nombre": "Dani Olmo",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Aleksandar Mitrović",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 83,
+    "valor": 40000000,
+    "nombre": "Igor Paixão",
+    "puesto": "DEL"
+},
+{
+    "edad": 24,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Andreas Pereira",
+    "puesto": "MED"
+},
+{
+    "edad": 28,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Gabriel Barbosa",
+    "puesto": "DEL"
+},
+{
+    "edad": 29,
+    "nivel": 82,
+    "valor": 32000000,
+    "nombre": "Bruno Henrique",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Everton Ribeiro",
+    "puesto": "MED"
+},
+{
+    "edad": 27,
+    "nivel": 83,
+    "valor": 35000000,
+    "nombre": "Raphael Veiga",
+    "puesto": "MED"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 32000000,
+    "nombre": "Mason Greenwood",
+    "puesto": "DEL"
+},
+{
+    "edad": 26,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Amine Gouiri",
+    "puesto": "DEL"
+},
+{
+    "edad": 29,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Romain Del Castillo",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Bradley Locko",
+    "puesto": "DEF"
+},
+{
+    "edad": 24,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Maghnes Akliouche",
+    "puesto": "MED"
+},
+{
+    "edad": 23,
+    "nivel": 82,
+    "valor": 35000000,
+    "nombre": "Eliesse Ben Seghir",
+    "puesto": "DEL"
+},
+{
+    "edad": 27,
+    "nivel": 83,
+    "valor": 34000000,
+    "nombre": "Mikel Merino",
+    "puesto": "MED"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 30000000,
+    "nombre": "Ismaël Bennacer",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 83,
+    "valor": 36000000,
+    "nombre": "Youssouf Fofana",
+    "puesto": "MED"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Manuel Ugarte",
+    "puesto": "MED"
+},
+{
+    "edad": 30,
+    "nivel": 83,
+    "valor": 30000000,
+    "nombre": "Marco Asensio",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 31000000,
+    "nombre": "Donnel Malen",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 32000000,
+    "nombre": "Nadiem Amiri",
+    "puesto": "MED"
+},
+{
+    "edad": 29,
+    "nivel": 82,
+    "valor": 29000000,
+    "nombre": "Leon Goretzka",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Julian Brandt",
+    "puesto": "MED"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 30000000,
+    "nombre": "Serge Aurier",
+    "puesto": "DEF"
+},
+{
+    "edad": 27,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Jeremie Boga",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 34000000,
+    "nombre": "Teun Koopmeiners",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 82,
+    "valor": 32000000,
+    "nombre": "Matías Soulé",
+    "puesto": "DEL"
+},
+{
+    "edad": 24,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Samuel Chukwueze",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Hakan Çalhanoğlu",
+    "puesto": "MED"
+},
+{
+    "edad": 27,
+    "nivel": 83,
+    "valor": 36000000,
+    "nombre": "Alessandro Buongiorno",
+    "puesto": "DEF"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Manuel Locatelli",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Giacomo Raspadori",
+    "puesto": "DEL"
+},
+{
+    "edad": 24,
+    "nivel": 82,
+    "valor": 35000000,
+    "nombre": "Riccardo Orsolini",
+    "puesto": "DEL"
+},
+{
+    "edad": 29,
+    "nivel": 81,
+    "valor": 27000000,
+    "nombre": "Ciro Immobile",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 30000000,
+    "nombre": "Edin Džeko",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 81,
+    "valor": 29000000,
+    "nombre": "Mats Wieffer",
+    "puesto": "MED"
+},
+{
+    "edad": 26,
+    "nivel": 80,
+    "valor": 26000000,
+    "nombre": "Davy Klaassen",
+    "puesto": "MED"
+},
+{
+    "edad": 24,
+    "nivel": 82,
+    "valor": 35000000,
+    "nombre": "Arthur Vermeeren",
+    "puesto": "MED"
+},
+{
+    "edad": 23,
+    "nivel": 81,
+    "valor": 32000000,
+    "nombre": "Johan Bakayoko",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Noa Lang",
+    "puesto": "DEL"
+},
+{
+    "edad": 27,
+    "nivel": 82,
+    "valor": 31000000,
+    "nombre": "Santiago Giménez",
+    "puesto": "DEL"
+},
+{
+    "edad": 26,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Hirving Lozano",
+    "puesto": "DEL"
+},
+{
+    "edad": 29,
+    "nivel": 82,
+    "valor": 29000000,
+    "nombre": "Denis Bouanga",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 80,
+    "valor": 26000000,
+    "nombre": "Luis Suárez",
+    "puesto": "DEL"
+},
+{
+    "edad": 31,
+    "nivel": 80,
+    "valor": 24000000,
+    "nombre": "Sergio Busquets",
+    "puesto": "MED"
+},
+{
+    "edad": 27,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Lorenzo Insigne",
+    "puesto": "DEL"
+},
+{
+    "edad": 30,
+    "nivel": 81,
+    "valor": 25000000,
+    "nombre": "Olivier Giroud",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 30000000,
+    "nombre": "Federico Bernardeschi",
+    "puesto": "DEL"
+},
+{
+    "edad": 26,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Jonathan Rodríguez",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Giorgian De Arrascaeta",
+    "puesto": "MED"
+},
+{
+    "edad": 29,
+    "nivel": 83,
+    "valor": 35000000,
+    "nombre": "Gerson",
+    "puesto": "MED"
+},
+{
+    "edad": 27,
+    "nivel": 82,
+    "valor": 30000000,
+    "nombre": "Éverton",
+    "puesto": "DEL"
+},
+{
+    "edad": 26,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Paulinho",
+    "puesto": "DEL"
+},
+{
+    "edad": 24,
+    "nivel": 82,
+    "valor": 32000000,
+    "nombre": "Estêvão",
+    "puesto": "DEL"
+},
+{
+    "edad": 25,
+    "nivel": 81,
+    "valor": 30000000,
+    "nombre": "Gustavo Scarpa",
+    "puesto": "MED"
+},
+{
+    "edad": 23,
+    "nivel": 82,
+    "valor": 33000000,
+    "nombre": "Vitor Roque",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 29000000,
+    "nombre": "Éverton Ribeiro",
+    "puesto": "MED"
+},
+{
+    "edad": 30,
+    "nivel": 81,
+    "valor": 27000000,
+    "nombre": "Alex Telles",
+    "puesto": "DEF"
+},
+{
+    "edad": 27,
+    "nivel": 82,
+    "valor": 31000000,
+    "nombre": "André Carrillo",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 82,
+    "valor": 30000000,
+    "nombre": "Sofyan Amrabat",
+    "puesto": "MED"
+},
+{
+    "edad": 25,
+    "nivel": 83,
+    "valor": 38000000,
+    "nombre": "Allan Saint-Maximin",
+    "puesto": "DEL"
+},
+{
+    "edad": 27,
+    "nivel": 81,
+    "valor": 29000000,
+    "nombre": "N'Golo Kanté",
+    "puesto": "MED"
+},
+{
+    "edad": 29,
+    "nivel": 82,
+    "valor": 30000000,
+    "nombre": "Ivan Perišić",
+    "puesto": "DEL"
+},
+{
+    "edad": 28,
+    "nivel": 81,
+    "valor": 28000000,
+    "nombre": "Franck Kessié",
+    "puesto": "MED"
+},
+{
+    "edad": 25,
+    "nivel": 82,
+    "valor": 32000000,
+    "nombre": "Malcom",
+    "puesto": "DEL"
+}
+]
 }

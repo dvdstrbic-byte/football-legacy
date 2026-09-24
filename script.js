@@ -1,12 +1,3 @@
-/* FOOTBALL MANAGER — script.js
-   El estado del juego se guarda en localStorage, con el email del
-   usuario como clave, así cada uno recupera su partida al iniciar
-   sesión de nuevo. */
-
-/* ---------------------------------------------------------------------
-   1) LIGAS Y EQUIPOS DISPONIBLES
-   --------------------------------------------------------------------- */
-/* 1) LIGAS, EQUIPOS Y MERCADO — se cargan desde datos.json */
 let LIGAS = [];
 let POOL_MERCADO = [];
 
@@ -17,16 +8,14 @@ async function cargarDatosDelJuego(){
   POOL_MERCADO = datos.mercado;
 }
 
-/* ---------------------------------------------------------------------
-   1-B) FORMACIONES DISPONIBLES
-   --------------------------------------------------------------------- */
-const FORMACIONES = {
+
+const FORMACIONES={
   "4-3-3": { DEF: 4, MED: 3, DEL: 3 },
   "4-4-2": { DEF: 4, MED: 4, DEL: 2 },
   "3-5-2": { DEF: 3, MED: 5, DEL: 2 }
 };
 
-/* 1-C) FASES DE LA COPA NACIONAL */
+
 const FASES_COPA = ["previa", "octavos", "cuartos", "semifinal", "final"];
 
 const NOMBRE_FASE = {
@@ -38,15 +27,16 @@ const NOMBRE_FASE = {
 };
 
 const PREMIOS_COPA = {
-  previa: 500000,
-  octavos: 800000,
-  cuartos: 1500000,
-  semifinal: 2500000,
-  final: 5000000
+  previa: 1000000,
+  octavos: 3000000,
+  cuartos: 5000000,
+  semifinal: 7000000,
+  final: 10000000
 };
 
+const PREMIO_SUPERCOPA = 4000000;
 
-/* Frases variadas para el relato de los goles */
+
 const FRASES_GOL_PROPIO = [
   "¡GOLAZO de {j}!",
   "{j} define de zurda y la clava en el ángulo",
@@ -58,6 +48,7 @@ const FRASES_GOL_PROPIO = [
   "{j} aprovecha el rebote y anota",
   "{j} la pica por encima del arquero, ¡qué categoría!",
 ];
+
 const FRASES_GOL_RIVAL = [
   "{r} descuenta en un contragolpe letal",
   "Error defensivo y gol de {r}",
@@ -68,9 +59,7 @@ const FRASES_GOL_RIVAL = [
   "{r} aprovecha un rebote y define",
 ];
 
-/* ---------------------------------------------------------------------
-   2) VARIABLES GLOBALES DE LA SESIÓN ACTUAL
-   --------------------------------------------------------------------- */
+
 let baseDeDatos = cargarBaseDeDatos();
 let emailActual = null;
 let ligaElegidaTemporal = null;
@@ -80,9 +69,6 @@ let filtrosMercado = { texto: "", posicion: "TODOS", nivelMin: null, edadMax: nu
 let perfilVistoEmail = null;
 let perfilOrigen = "stats";
 
-/* ---------------------------------------------------------------------
-   3) FUNCIONES DE GUARDADO (localStorage)
-   --------------------------------------------------------------------- */
 function cargarBaseDeDatos(){
   const guardado = localStorage.getItem("fm_usuarios");
   if(!guardado) return {};
@@ -95,9 +81,6 @@ function usuario(){
   return baseDeDatos[emailActual] ? baseDeDatos[emailActual] : null;
 }
 
-/* ---------------------------------------------------------------------
-   4) FUNCIONES PARA MOSTRAR / OCULTAR PANTALLAS
-   --------------------------------------------------------------------- */
 function irAPantalla(idPantalla){
   document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
   document.getElementById(idPantalla).classList.add("activa");
@@ -137,9 +120,6 @@ function mostrarTab(tab){
   document.getElementById("form-registro").classList.toggle("oculto", tab !== "registro");
 }
 
-/* ---------------------------------------------------------------------
-   5) AVISO (mensaje flotante abajo)
-   --------------------------------------------------------------------- */
 function mostrarAviso(texto){
   const aviso = document.getElementById("aviso");
   aviso.textContent = texto;
@@ -147,9 +127,7 @@ function mostrarAviso(texto){
   setTimeout(() => aviso.classList.remove("mostrar"), 2600);
 }
 
-/* ---------------------------------------------------------------------
-   6) LOGIN Y REGISTRO
-   --------------------------------------------------------------------- */
+
 function crearCuenta(evento){
   evento.preventDefault();
   const email = document.getElementById("registro-email").value.trim().toLowerCase();
@@ -188,7 +166,7 @@ function iniciarSesion(evento){
   emailActual = email;
   if(cuenta.club){
     entrarAlJuego();
-  } else {
+  }else{
     mostrarPantallaLigas();
   }
   return false;
@@ -200,9 +178,7 @@ function cerrarSesion(){
   irAPantalla("pantalla-auth");
 }
 
-/* ---------------------------------------------------------------------
-   7) ELEGIR LIGA Y EQUIPO
-   --------------------------------------------------------------------- */
+
 function mostrarPantallaLigas(){
   const contenedor = document.getElementById("lista-ligas");
   contenedor.innerHTML = "";
@@ -211,6 +187,7 @@ function mostrarPantallaLigas(){
     div.className = "tarjeta-liga";
     div.onclick = () => elegirLiga(indice);
     div.innerHTML = `
+      ${liga.escudo ? `<img src="${liga.escudo}" alt="${liga.nombre}" class="escudo-liga escudo-mediano" />` : ""}
       <div>
         <p class="nombre-liga">${liga.nombre}</p>
         <p class="detalle-liga">${liga.equipos.length} equipos</p>
@@ -252,16 +229,14 @@ function elegirEquipo(indiceEquipo){
   entrarAlJuego();
 }
 
-/* ---------------------------------------------------------------------
-   8) HERRAMIENTAS GENERALES
-   --------------------------------------------------------------------- */
+
 function numeroAleatorio(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
 function elegirAlAzar(lista){ return lista[Math.floor(Math.random() * lista.length)]; }
 function formatearPlata(numero){
   return "$" + (numero / 1000000).toFixed(numero % 1000000 === 0 ? 0 : 1) + "M";
 }
 
-/* 8-A) NOTICIAS DEL CLUB */
+
 const EMOJI_NOTICIA = { gol: "⚽", fichaje: "💰", lesion: "🏥", copa: "🏆" };
 
 function agregarNoticia(club, texto, tipo){
@@ -270,12 +245,7 @@ function agregarNoticia(club, texto, tipo){
   if(club.noticias.length > 20) club.noticias.length = 20;
 }
 
-/* 8-B) ESCUDOS DE LOS EQUIPOS — campo "escudo" en datos.json. */
 
-// Busca el objeto del equipo (con su .escudo) a partir de un nombre,
-// mirando primero el club actual (uno mismo, rivales y otrosEquipos)
-// y si no lo encuentra ahí, en LIGAS (para las pantallas previas a
-// tener un club armado, como elegir liga/equipo).
 function buscarEquipoPorNombre(nombre, club){
   if(!nombre) return null;
   if(club){
@@ -292,10 +262,6 @@ function buscarEquipoPorNombre(nombre, club){
   return null;
 }
 
-// equipoONombre puede ser: el objeto del equipo (si ya lo tenés a mano,
-// como en la lista de "elegir equipo"), o directamente el nombre en
-// texto (y entonces se busca el escudo con buscarEquipoPorNombre,
-// pasando el "club" actual como tercer parámetro para poder encontrarlo).
 function escudoEquipoHTML(equipoONombre, tamano, club){
   let nombre, escudo;
   if(equipoONombre && typeof equipoONombre === "object"){
@@ -310,7 +276,6 @@ function escudoEquipoHTML(equipoONombre, tamano, club){
   return `<img src="${escudo}" alt="${nombre}" class="${clase}" />`;
 }
 
-/* 9) CREACIÓN DE JUGADORES Y PLANTEL — todos salen de datos.json */
 function crearJugadorReal(real){
   return {
     id: "j" + Date.now() + numeroAleatorio(1, 99999),
@@ -325,7 +290,6 @@ function crearPlantelInicial(equipo){
   return (equipo.real || []).map(real => crearJugadorReal(real));
 }
 
-/* 8-B) OBJETIVOS DE TEMPORADA — se generan al arrancar cada temporada */
 function generarObjetivosTemporada(club){
   const calidad = club.calidadBase;
 
@@ -351,8 +315,7 @@ function generarObjetivosTemporada(club){
   };
 }
 
-/* Progreso EN VIVO para el Inicio: no marca cumplido/no cumplido
-   hasta cerrar la temporada (eso lo hace evaluarObjetivos). */
+
 function calcularProgresoObjetivos(club){
   if(!club.objetivosTemporada) return [];
   const obj = club.objetivosTemporada;
@@ -372,14 +335,14 @@ function calcularProgresoObjetivos(club){
   const actualFinanzas = signoGanancia + formatearPlata(Math.abs(gananciaActual));
 
   return [
-    { icono: "🏆", texto: "Liga: " + obj.liga.texto, actual: `Actualmente: ${posicionActual > 0 ? posicionActual + "° posición" : "—"}` },
-    { icono: "🏆", texto: "Copa: " + obj.copa.texto, actual: `Actualmente: ${faseActualTexto}` },
-    { icono: "⚽", texto: "Goles: " + obj.goles.texto, actual: `Actualmente: ${golesActuales} goles` },
-    { icono: "💰", texto: "Finanzas: " + obj.finanzas.texto, actual: `Actualmente: ${actualFinanzas}` }
+    { icono: "", texto: "Liga: " + obj.liga.texto, actual: `Actualmente: ${posicionActual > 0 ? posicionActual + "° posición" : "—"}` },
+    { icono: "", texto: "Copa: " + obj.copa.texto, actual: `Actualmente: ${faseActualTexto}` },
+    { icono: "", texto: "Goles: " + obj.goles.texto, actual: `Actualmente: ${golesActuales} goles` },
+    { icono: "", texto: "Finanzas: " + obj.finanzas.texto, actual: `Actualmente: ${actualFinanzas}` }
   ];
 }
 
-/* Evaluación FINAL (al cerrar la temporada), para el resumen y el historial */
+
 function evaluarObjetivos(club, miPosicion, golesTemporada){
   if(!club.objetivosTemporada) return null;
   const obj = club.objetivosTemporada;
@@ -405,9 +368,7 @@ function evaluarObjetivos(club, miPosicion, golesTemporada){
   return { items: items, cumplidos: items.filter(i => i.cumplido).length, total: items.length };
 }
 
-/* Clona un equipo del JSON como un objeto propio e independiente
-   (plantel real incluido), para que cada club de cada usuario tenga
-   su propia versión mutable y no se pisen entre sí. */
+
 function clonarEquipoParaClub(equipo, nombreLiga){
   return {
     nombre: equipo.nombre,
@@ -425,9 +386,7 @@ function crearClubNuevo(equipoElegido, liga){
     .filter(e => e.nombre !== equipoElegido.nombre)
     .map(e => clonarEquipoParaClub(e, liga.nombre));
 
-  // Equipos de TODAS las demás ligas: no juegan el campeonato contra
-  // vos, pero podés fichar sus jugadores y ellos también pueden
-  // ofertar por los tuyos (pestaña "Fichar").
+
   const otrosEquipos = LIGAS
     .filter(l => l.nombre !== liga.nombre)
     .flatMap(l => l.equipos.map(e => clonarEquipoParaClub(e, l.nombre)));
@@ -466,6 +425,7 @@ function crearClubNuevo(equipoElegido, liga){
     golesTemporadaActual: 0,
     objetivosTemporada: null,
     copa: copaVacia(),
+    supercopa: null,
     historial: [],
     resumenTemporadaPendiente: null
   };
@@ -497,9 +457,6 @@ function autoCompletarAlineacion(club){
   club.alineacion.DEL = porPuesto("DEL").slice(0, necesita.DEL).map(j => j.id);
 }
 
-/* ---------------------------------------------------------------------
-   10) ENTRAR AL JUEGO Y ENCABEZADO
-   --------------------------------------------------------------------- */
 function entrarAlJuego(){
   document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
   document.getElementById("app").classList.add("activa");
@@ -508,15 +465,13 @@ function entrarAlJuego(){
   irAPantalla2("inicio");
 }
 
-/* Partidas guardadas ANTES de agregar ofertas, objetivos y perfil no
-   tienen estos campos: los completa con valores por defecto la
-   primera vez que entrás, para que no se rompa nada. */
 function asegurarCamposNuevosDelClub(club){
   let cambio = false;
   if(!club.ofertasRecibidas){ club.ofertasRecibidas = []; cambio = true; }
   if(!club.ofertasSalientes){ club.ofertasSalientes = []; cambio = true; }
   if(club.equipoFichando === undefined){ club.equipoFichando = null; cambio = true; }
   if(!club.trofeos){ club.trofeos = { ligas: 0 }; cambio = true; }
+  if(club.supercopa === undefined){ club.supercopa = null; cambio = true; }
   if(club.totalGastadoFichajes === undefined){ club.totalGastadoFichajes = 0; cambio = true; }
   if(club.golesTemporadaActual === undefined){ club.golesTemporadaActual = 0; cambio = true; }
   if(!club.objetivosTemporada){ generarObjetivosTemporada(club); cambio = true; }
@@ -530,18 +485,14 @@ function actualizarEncabezado(){
   document.getElementById("hud-plata").textContent = formatearPlata(club.presupuesto);
 }
 
-/* ---------------------------------------------------------------------
-   11) PRÓXIMO PARTIDO (liga o copa) - lógica compartida
-   --------------------------------------------------------------------- */
+
 function proximoRival(club){
   const indice = (club.fecha - 1) % club.calendario.length;
   return club.calendario[indice];
 }
 
-/* Decide si el próximo partido a jugar es de LIGA o de COPA.
-   Regla: después de jugar un partido de copa, siempre toca un
-   partido de liga antes de que llegue el próximo de copa. */
 function tipoProximoPartido(club){
+  if(club.supercopa && club.supercopa.pendiente) return "supercopa";
   if(club.copa && club.copa.pendiente && !club.copa.esperandoLiga) return "copa";
   return "liga";
 }
@@ -553,12 +504,16 @@ function rivalDeMiCruce(club){
 }
 
 function obtenerProximoRivalGenerico(club){
-  if(tipoProximoPartido(club) === "copa") return rivalDeMiCruce(club);
+  const tipo = tipoProximoPartido(club);
+  if(tipo === "supercopa") return club.supercopa.rival;
+  if(tipo === "copa") return rivalDeMiCruce(club);
   return proximoRival(club);
 }
 
 function etiquetaProximoPartido(club){
-  if(tipoProximoPartido(club) === "copa"){
+  const tipo = tipoProximoPartido(club);
+  if(tipo === "supercopa") return "SUPERCOPA";
+  if(tipo === "copa"){
     const cruce = club.copa.miCruce;
     if(cruce.esFinal) return "COPA · FINAL";
     return "COPA · " + (club.copa.pendiente === "vuelta" ? "VUELTA" : "IDA") + " · " + NOMBRE_FASE[club.copa.fase];
@@ -566,9 +521,7 @@ function etiquetaProximoPartido(club){
   return "LIGA · Fecha " + club.fecha;
 }
 
-/* ---------------------------------------------------------------------
-   12) PANTALLA INICIO
-   --------------------------------------------------------------------- */
+
 function mostrarInicio(){
   mostrarResumenTemporadaSiCorresponde();
 
@@ -588,20 +541,18 @@ function mostrarInicio(){
     ? listaGoleadores[0].nombre.split(" ")[0] + " (" + listaGoleadores[0].goles + ")"
     : "—";
 
-  // Racha actual (mismo cálculo que usa la pantalla de Estadísticas)
   document.getElementById("inicio-racha").textContent = calcularRachaActual(club);
 
   const objetivosDiv = document.getElementById("inicio-objetivos");
   if(objetivosDiv){
     const progreso = calcularProgresoObjetivos(club);
     objetivosDiv.innerHTML = progreso.length
-      ? `<p class="subtitulo-seccion" style="margin-top:16px;">🎯 Objetivos de la temporada</p>` +
+      ? `<p class="subtitulo-seccion" style="margin-top:16px;"> Objetivos de la temporada</p>` +
         progreso.map(o => `<div class="fila-objetivo"><span>${o.icono} ${o.texto}</span><span class="objetivo-actual">${o.actual}</span></div>`).join("")
       : "";
   }
 
-  // Noticias: lo último que pasó en tu club (rachas de gol, ofertas
-  // por tus jugadores, lesiones, sorteos de Copa), más reciente primero.
+
   const noticiasDiv = document.getElementById("inicio-noticias");
   if(noticiasDiv){
     const noticias = club.noticias || [];
@@ -618,15 +569,20 @@ function mostrarInicio(){
   }
 }
 
-/* ---------------------------------------------------------------------
-   13) PANTALLA PLANTEL
-   --------------------------------------------------------------------- */
+
 function filtrarPlantel(puesto, boton){
   filtroPlantelActual = puesto;
   document.querySelectorAll("#filtros-posicion .filtro").forEach(b => b.classList.remove("activa"));
   boton.classList.add("activa");
   mostrarPlantel();
 }
+
+const LOGO_POSICION = {
+  POR: "imagenes/Logo_Arquero.png",
+  DEF: "imagenes/Logo_Defensa.png",
+  MED: "imagenes/Logo_Centrocampista.png",
+  DEL: "imagenes/Logo_Delantero.png"
+};
 
 function tarjetaJugadorHTML(jugador, botonExtra){
   const claseCrack = jugador.esCrack ? " jugador-crack" : "";
@@ -638,7 +594,7 @@ function tarjetaJugadorHTML(jugador, botonExtra){
 
   return `
     <div class="jugador${claseCrack}">
-      <div class="jugador-pos">${jugador.puesto}</div>
+      <img class="jugador-pos" src="${LOGO_POSICION[jugador.puesto] || ""}" alt="${jugador.puesto}" />
       <div class="jugador-info">
         <p class="jugador-nombre">${jugador.esReal ? " " : ""}${jugador.nombre}${etiquetaCrack}</p>
         <p class="jugador-detalle">${jugador.edad} años${etiquetaLesion}</p>
@@ -663,9 +619,7 @@ function mostrarPlantel(){
     : '<p class="vacio">No hay jugadores en este puesto.</p>';
 }
 
-/* ---------------------------------------------------------------------
-   14) PANTALLA ALINEACIÓN
-   --------------------------------------------------------------------- */
+
 function cambiarFormacion(){
   const club = usuario().club;
   club.formacion = document.getElementById("select-formacion").value;
@@ -688,8 +642,7 @@ function jugadoresYaElegidos(club){
 
 const NOMBRE_PUESTO_LARGO = { POR: "arquero", DEF: "defensor", MED: "mediocampista", DEL: "delantero" };
 
-/* Acorta el nombre para que entre en el chip de la cancha:
-   "Gabriel Ávalos" -> "G. Ávalos" */
+
 function nombreCortoJugador(nombreCompleto){
   const partes = nombreCompleto.trim().split(" ");
   if(partes.length === 1) return partes[0];
@@ -708,9 +661,7 @@ function crearChipDePuesto(club, puesto, indice, idElegido){
     onclick="abrirSelectorJugador('${puesto}', ${indice})">${contenido}</button>`;
 }
 
-/* ---------------------------------------------------------------------
-   MODAL: elegir jugador para un puesto (reemplaza al <select> nativo)
-   --------------------------------------------------------------------- */
+
 let selectorActual = { puesto: null, indice: null };
 
 function abrirSelectorJugador(puesto, indice){
@@ -789,9 +740,7 @@ function alineacionCompleta(club){
     club.alineacion.DEL.every(id => id !== "");
 }
 
-/* ---------------------------------------------------------------------
-   15) PANTALLA MERCADO (comprar / vender / ofertas / fichar)
-   --------------------------------------------------------------------- */
+
 function cambiarTabMercado(tab){
   tabMercadoActual = tab;
   document.getElementById("tab-comprar").classList.toggle("activa", tab === "comprar");
@@ -806,7 +755,7 @@ function cambiarTabMercado(tab){
   mostrarMercado();
 }
 
-/* 15-A) BUSCADOR Y FILTROS DEL MERCADO — filtran del lado del cliente */
+
 const NOMBRE_POSICION_FILTRO = { POR: "Arqueros", DEF: "Defensores", MED: "Mediocampistas", DEL: "Delanteros" };
 
 function toggleFiltrosMercado(){
@@ -836,8 +785,7 @@ function actualizarFiltrosMercado(){
   mostrarMercado();
 }
 
-/* Vacía el estado sin re-renderizar (se usa al cambiar de pestaña).
-   Si los inputs ya existen en el DOM, también los limpia. */
+
 function resetearFiltrosMercado(){
   filtrosMercado = { texto: "", posicion: "TODOS", nivelMin: null, edadMax: null, valorMax: null };
   const campoTexto = document.getElementById("buscador-mercado-texto");
@@ -888,10 +836,7 @@ function mostrarResumenFiltrosMercado(){
   resumen.style.display = "flex";
 }
 
-/* El buscador solo tiene sentido donde hay jugadores individuales para
-   elegir: "Comprar", "Vender", y "Fichar" una vez que ya elegiste
-   equipo. En "Ofertas" (negociaciones) y en la lista de equipos de
-   "Fichar" se oculta. */
+
 function actualizarVisibilidadBuscadorMercado(club){
   const buscador = document.getElementById("buscador-mercado");
   if(!buscador) return;
@@ -909,10 +854,7 @@ function actualizarVisibilidadBuscadorMercado(club){
   }
 }
 
-/* Ya no hay un cupo de 6 ofertas rotativas: "Comprar" ahora es el
-   catálogo completo del mercado (todos los jugadores reales que
-   nadie fichó todavía), y el buscador/filtros son la forma de
-   encontrar lo que te interesa ahí adentro. */
+
 function obtenerJugadoresDisponiblesMercado(club){
   const yaComprados = club.jugadoresRealesComprados || [];
   return POOL_MERCADO.filter(r =>
@@ -1033,7 +975,7 @@ function venderJugador(idJugador){
   mostrarAviso("Vendiste a " + jugador.nombre + " por " + formatearPlata(precioVenta) + " 💰");
 }
 
-/* 15-B) OFERTAS RECIBIDAS POR TUS JUGADORES — aceptar / rechazar / negociar */
+
 function elegirPonderado(lista, pesos){
   const total = pesos.reduce((a, b) => a + b, 0);
   if(total <= 0) return elegirAlAzar(lista);
@@ -1045,8 +987,7 @@ function elegirPonderado(lista, pesos){
   return lista[lista.length - 1];
 }
 
-/* Por compatibilidad con partidas guardadas antes de este cambio
-   (que no tenían "otrosEquipos" todavía). */
+
 function asegurarOtrosEquipos(club){
   if(club.otrosEquipos) return;
   club.otrosEquipos = LIGAS
@@ -1054,8 +995,7 @@ function asegurarOtrosEquipos(club){
     .flatMap(l => l.equipos.map(e => clonarEquipoParaClub(e, l.nombre)));
 }
 
-/* Todos los equipos con los que podés fichar o que te pueden ofertar:
-   los rivales de tu liga + los equipos de todas las demás ligas. */
+
 function equiposParaFichaje(club){
   asegurarOtrosEquipos(club);
   return club.rivales.concat(club.otrosEquipos || []);
@@ -1067,9 +1007,9 @@ function buscarEquipoParaFichaje(club, nombreEquipo){
 
 function generarOfertaRecibidaAlAzar(club){
   club.ofertasRecibidas = club.ofertasRecibidas || [];
-  if(club.ofertasRecibidas.length >= 6) return; // no acumular demasiadas
-  if(club.plantel.length <= 13) return; // no vaciar el plantel
-  if(Math.random() > 0.45) return; // 45% de probabilidad por fecha
+  if(club.ofertasRecibidas.length >= 6) return;
+  if(club.plantel.length <= 13) return; 
+  if(Math.random() > 0.45) return; 
 
   const candidatos = club.plantel.filter(j =>
     !j.lesionado && !club.ofertasRecibidas.some(o => o.jugadorId === j.id)
@@ -1079,13 +1019,11 @@ function generarOfertaRecibidaAlAzar(club){
   const pesos = candidatos.map(j => Math.max(1, j.nivel - 60));
   const elegido = elegirPonderado(candidatos, pesos);
 
-  const factor = 0.85 + Math.random() * 0.55; // entre 0.85x y 1.4x del valor
+  const factor = 0.85 + Math.random() * 0.55; 
   const monto = Math.max(500000, Math.round(elegido.valor * factor / 100000) * 100000);
 
-  // Solo entran en el sorteo los equipos que realmente tienen esa
-  // plata disponible (presupuesto real del equipo).
   const equiposQuePueden = equiposParaFichaje(club).filter(e => (e.presupuesto || 0) >= monto);
-  if(!equiposQuePueden.length) return; // nadie tiene presupuesto para pagar eso por ahora
+  if(!equiposQuePueden.length) return; 
   const equipoComprador = elegirAlAzar(equiposQuePueden);
 
   club.ofertasRecibidas.push({
@@ -1096,15 +1034,14 @@ function generarOfertaRecibidaAlAzar(club){
     nivel: elegido.nivel,
     equipoComprador: equipoComprador.nombre,
     monto: monto,
-    estado: "pendiente" // pendiente | negociando
+    estado: "pendiente" 
   });
 
   agregarNoticia(club, `${equipoComprador.nombre} realizó una oferta de ${formatearPlata(monto)} por ${elegido.nombre}.`, "fichaje");
   mostrarAviso("📩 " + equipoComprador.nombre + " hizo una oferta por " + elegido.nombre + "!");
 }
 
-/* Resuelve, al empezar una fecha nueva, las ofertas que estaban
-   "negociando" (les pediste más plata la fecha anterior). */
+
 function resolverNegociacionesPendientes(club){
   club.ofertasRecibidas = club.ofertasRecibidas || [];
   const siguen = [];
@@ -1125,7 +1062,6 @@ function resolverNegociacionesPendientes(club){
       siguen.push(oferta);
     } else {
       mostrarAviso("❌ " + oferta.equipoComprador + " retiró su oferta por " + oferta.jugadorNombre);
-      // no se agrega a "siguen": queda eliminada
     }
   });
   club.ofertasRecibidas = siguen;
@@ -1172,7 +1108,6 @@ function responderOferta(idOferta, accion){
   mostrarMercado();
 }
 
-/* 15-C) FICHAR JUGADORES DE OTROS CLUBES DE TU LIGA */
 function verPlantelParaFichar(nombreEquipo){
   const club = usuario().club;
   club.equipoFichando = nombreEquipo;
@@ -1272,7 +1207,7 @@ function hacerOferta(equipoVendedor, nombreJugador, puesto, nivel, valorReal){
     nivel: nivel,
     montoOfertado: monto,
     valorEstimado: valorReal,
-    estado: "pendiente" // pendiente | contraoferta_pendiente
+    estado: "pendiente"
   });
 
   guardarBaseDeDatos();
@@ -1280,8 +1215,7 @@ function hacerOferta(equipoVendedor, nombreJugador, puesto, nivel, valorReal){
   mostrarFichar(club);
 }
 
-/* Busca reemplazo para el rival que vendió un jugador, priorizando
-   el mismo puesto y lo que le alcance el presupuesto. */
+
 function rivalFichaReemplazo(rival, puestoNecesario){
   if(!rival) return;
   rival.real = rival.real || [];
@@ -1302,10 +1236,6 @@ function rivalFichaReemplazo(rival, puestoNecesario){
   rival.presupuesto -= elegido.valor;
 }
 
-/* Cuando un jugador cambia de equipo (se lo comprás a un rival de tu
-   liga, o un rival te compra uno tuyo), hay que sacarlo del plantel
-   que lo tenía, darle la plata de la venta a ese club, y que intente
-   reforzarse con un fichaje del mercado acorde a lo que cobró. */
 function transferirJugadorEntreClubes(rival, jugadorNombre, puesto, monto){
   if(!rival) return;
   rival.real = (rival.real || []).filter(j => j.nombre !== jugadorNombre);
@@ -1313,9 +1243,6 @@ function transferirJugadorEntreClubes(rival, jugadorNombre, puesto, monto){
   rivalFichaReemplazo(rival, puesto);
 }
 
-/* Resuelve, al empezar una fecha nueva, tus ofertas salientes
-   pendientes: se aceptan, generan contraoferta, o se rechazan,
-   según cuán buena sea tu oferta respecto al valor real del jugador. */
 function resolverOfertasSalientesPendientes(club){
   club.ofertasSalientes = club.ofertasSalientes || [];
 
@@ -1386,9 +1313,7 @@ function responderContraoferta(idOferta, accion){
   mostrarFichar(club);
 }
 
-/* ---------------------------------------------------------------------
-   15-D) PANTALLA "OFERTAS" (recibidas + salientes juntas)
-   --------------------------------------------------------------------- */
+
 function tarjetaOfertaRecibidaHTML(o){
   if(o.estado === "negociando"){
     return `
@@ -1449,9 +1374,7 @@ function mostrarOfertas(club){
   contenedor.innerHTML = html;
 }
 
-/* ---------------------------------------------------------------------
-   16) COSAS QUE PASAN DESPUÉS DE CADA PARTIDO (compartido liga/copa)
-   --------------------------------------------------------------------- */
+
 function nivelPromedioTitulares(club){
   const ids = jugadoresYaElegidos(club);
   const titulares = club.plantel.filter(j => ids.includes(j.id));
@@ -1468,10 +1391,6 @@ function calcularGoles(nivelPropio, nivelRival){
   return goles;
 }
 
-/* Elige quién anota un gol propio EN VIVO, según quién está
-   realmente en cancha en ese momento de la simulación (afectado por
-   los cambios que hiciste) y la mentalidad elegida (que inclina la
-   balanza hacia los delanteros si jugás "ofensiva"). */
 function elegirGoleadorEnVivo(club, sim){
   const enCancha = club.plantel.filter(j => sim.enCancha.includes(j.id));
   const pesoDelanteros = sim.mentalidad === "ofensiva" ? 4 : (sim.mentalidad === "defensiva" ? 2 : 3);
@@ -1485,8 +1404,6 @@ function elegirGoleadorEnVivo(club, sim){
   return club.plantel.find(j => j.id === elegirAlAzar(candidatos)) || null;
 }
 
-/* Resuelve, en el momento exacto en que se muestra el evento, quién
-   convirtió un gol propio (los goles del rival ya vienen con texto). */
 function resolverGolEnVivo(evento){
   const club = usuario().club;
   const sim = simulacionActual;
@@ -1505,9 +1422,6 @@ function resolverGolEnVivo(evento){
   }
 }
 
-/* Aplica una lesión en el momento en que ocurre dentro del partido:
-   saca al jugador de la cancha (ya no puede seguir anotando en lo
-   que resta) y lo deja afuera de la próxima alineación. */
 function aplicarLesionEnVivo(evento){
   const club = usuario().club;
   const sim = simulacionActual;
@@ -1524,13 +1438,9 @@ function aplicarLesionEnVivo(evento){
   sim.enCancha = sim.enCancha.filter(id => id !== jugador.id);
 
   agregarNoticia(club, `${jugador.nombre} sufrió una lesión y estará afuera durante ${jugador.lesionado} partido(s).`, "lesion");
-  mostrarAviso("🤕 Se lesionó " + jugador.nombre + ". Va a estar afuera unos partidos.");
+  mostrarAviso(" Se lesionó " + jugador.nombre + ". Va a estar afuera unos partidos.");
 }
 
-/* Aplica un cambio automático en el momento en que ocurre: saca al
-   titular y mete al suplente del mismo puesto, de acá en adelante
-   ese es el que puede convertir goles propios (si vuelve a ganarle
-   la CPU a la moneda, claro). */
 function aplicarCambioEnVivo(evento){
   const sim = simulacionActual;
   if(!sim) return;
@@ -1538,8 +1448,6 @@ function aplicarCambioEnVivo(evento){
   if(!sim.enCancha.includes(evento.jugadorEntraId)) sim.enCancha.push(evento.jugadorEntraId);
 }
 
-/* Jugador del partido: el que más goles hizo (resuelto ya en vivo),
-   o uno al azar entre los titulares si no hubo goles propios. */
 function calcularMvpFinal(club, sim){
   const idsConGoles = Object.keys(sim.golesDeEstePartido || {});
   if(idsConGoles.length){
@@ -1555,9 +1463,7 @@ function bajarContadorLesiones(club){
   club.plantel.forEach(j => { if(j.lesionado > 0) j.lesionado--; });
 }
 
-/* Genera el relato de goles y arma tarjetas, penales y estadísticas
-   de color (no cambian el resultado), para que el partido en vivo se
-   sienta más real. Se usa tanto en partidos de liga como de copa. */
+
 function jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMio, nivelRival){
   nivelMio = (nivelMio == null) ? 75 : nivelMio;
   nivelRival = (nivelRival == null) ? 75 : nivelRival;
@@ -1576,10 +1482,7 @@ function jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMi
     return m;
   }
 
-  /* Los goles PROPIOS no asignan goleador acá: se resuelven en vivo,
-     durante la reproducción (mostrarEventoEnVivo), usando quién está
-     realmente en cancha en ese momento. Así los cambios y la
-     mentalidad influyen en quién termina anotando. */
+  
   for(let i = 0; i < golesMios; i++){
     const minuto = minutoLibre();
     const esPenal = Math.random() < 0.18;
@@ -1600,7 +1503,7 @@ function jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMi
     eventos.push({ minuto, tipo: "gol", mio: false, texto, pantallazo: "¡GOLLLL!" });
   }
 
-  // Tarjetas y algún penal errado: no cambian el resultado, son color
+
   let amarillasMias = 0, amarillasRival = 0;
   const cantidadAmarillas = numeroAleatorio(0, 3);
   for(let i = 0; i < cantidadAmarillas; i++){
@@ -1623,9 +1526,7 @@ function jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMi
     eventos.push({ minuto, tipo: "penal_errado", texto: "😱 ¡Penal errado por " + nombre + "!" });
   }
 
-  // Cambios automáticos: mismo puesto (defensor por defensor, etc.),
-  // suelen darse en la segunda mitad. Se resuelven en vivo, cuando
-  // llega su minuto, actualizando quién está en cancha.
+  
   const puestosConCambio = ["DEF", "MED", "DEL"].filter(puesto =>
     titulares.some(j => j.puesto === puesto) && banco.some(j => j.puesto === puesto)
   );
@@ -1653,7 +1554,7 @@ function jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMi
     });
   }
 
-  // Lesión al azar (8%): se resuelve en vivo, cuando llega su minuto
+  
   if(titulares.length && Math.random() < 0.08){
     const jugadorLesionado = elegirAlAzar(titulares);
     const minuto = minutoLibre();
@@ -1665,7 +1566,7 @@ function jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMi
 
   eventos.sort((a, b) => a.minuto - b.minuto);
 
-  // Estadísticas avanzadas de color (no afectan el resultado)
+
   const diferencia = nivelMio - nivelRival;
   const posesionMia = Math.max(32, Math.min(68, 50 + Math.round(diferencia / 2) + numeroAleatorio(-5, 5)));
   const tirosMios = Math.max(golesMios + numeroAleatorio(1, 4), numeroAleatorio(7, 15) + Math.round(diferencia / 8));
@@ -1685,9 +1586,7 @@ function jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMi
   return { eventos: eventos, estadisticas: estadisticas, titularesIniciales: idsTitulares };
 }
 
-/* ---------------------------------------------------------------------
-   16-B) SIMULACIÓN EN VIVO, MINUTO A MINUTO
-   --------------------------------------------------------------------- */
+
 let simulacionActual = null;
 
 function iniciarSimulacionEnVivo(datos){
@@ -1724,7 +1623,6 @@ function iniciarSimulacionEnVivo(datos){
   };
 
   irAPantalla2("partido");
-  sonidoSilbato();
   simulacionActual.timer = setInterval(avanzarMinuto, 180);
 }
 
@@ -1748,7 +1646,6 @@ function mostrarEventoEnVivo(evento){
   if(evento.tipo === "gol" && evento.mio && !evento.texto) resolverGolEnVivo(evento);
   if(evento.tipo === "lesion") aplicarLesionEnVivo(evento);
   if(evento.tipo === "cambio") aplicarCambioEnVivo(evento);
-  reproducirSonidoEvento(evento);
 
   if(evento.tipo === "gol"){
     if(evento.mio){ sim.golesMios++; document.getElementById("partido-goles-local").textContent = sim.golesMios; }
@@ -1802,7 +1699,6 @@ function finalizarSimulacion(){
   const sim = simulacionActual;
   if(!sim) return;
   clearInterval(sim.timer);
-  sonidoSilbato();
 
   document.getElementById("btn-cambios").style.display = "none";
   document.getElementById("panel-cambios").style.display = "none";
@@ -1855,10 +1751,6 @@ function finalizarSimulacion(){
   simulacionActual = null;
 }
 
-/* Guarda cuántos goles metió cada jugador en este partido (a todos,
-   incluso a los que no anotaron: quedan en 0) y, si alguno viene con
-   una buena racha en los últimos partidos, genera una noticia. Solo
-   una por partido: la del jugador con más goles en ese tramo. */
 function registrarRachaGoles(club, sim){
   club.historialGoles = club.historialGoles || {};
   club.plantel.forEach(j => {
@@ -1884,10 +1776,6 @@ function registrarRachaGoles(club, sim){
   }
 }
 
-/* 16-C) AJUSTES EN VIVO: mentalidad y formación.
-   El resultado ya está decidido al arrancar la simulación; la
-   mentalidad solo influye en quién anota los goles propios de acá
-   en adelante (favorece a los delanteros en "ofensiva", etc). */
 function togglePanelCambios(){
   const panel = document.getElementById("panel-cambios");
   if(!panel) return;
@@ -1954,12 +1842,6 @@ function cambiarFormacionEnVivo(nuevaFormacion){
   mostrarAviso("Cambio de formación a " + nuevaFormacion);
 }
 
-/* ---------------------------------------------------------------------
-   17) CIERRE DE TEMPORADA: los jugadores envejecen y algunos se retiran
-   --------------------------------------------------------------------- */
-
-/* Plata que se gana al terminar la temporada, según la posición final
-   en la tabla (cuanto mejor la posición, más grande el premio) */
 function calcularPremioPorPosicion(posicion){
   if(posicion === 1) return 8000000;
   if(posicion <= 3) return 5000000;
@@ -2002,6 +1884,42 @@ function guardarHistorialTemporada(club){
   club.resumenTemporadaPendiente = entrada;
 }
 
+function prepararSupercopa(club){
+  const entrada = club.historial[0];
+  if(!entrada) return;
+  const campeonLiga = entrada.campeonLiga;
+  const campeonCopa = entrada.campeonCopa;
+
+  if(!campeonCopa || campeonCopa === campeonLiga){
+    club.supercopa = null;
+    return;
+  }
+
+  if(campeonLiga !== club.nombre && campeonCopa !== club.nombre){
+    const calA = calidadDe(club, campeonLiga);
+    const calB = calidadDe(club, campeonCopa);
+    let golA = calcularGoles(calA, calB);
+    let golB = calcularGoles(calB, calA);
+    if(golA === golB){
+      const [pa, pb] = jugarProrroga(calA, calB);
+      golA += pa; golB += pb;
+      if(golA === golB){
+        const ganoA = jugarPenales() === "A";
+        golA += ganoA ? 1 : 0; golB += ganoA ? 0 : 1;
+      }
+    }
+    const ganador = golA > golB ? campeonLiga : campeonCopa;
+    const perdedor = ganador === campeonLiga ? campeonCopa : campeonLiga;
+    agregarNoticia(club, `🏆 ${ganador} se consagró campeón de la Supercopa, venciendo a ${perdedor}.`, "copa");
+    club.supercopa = null;
+    return;
+  }
+
+  const rival = campeonLiga === club.nombre ? campeonCopa : campeonLiga;
+  club.supercopa = { pendiente: true, rival };
+  agregarNoticia(club, `Arrancás la temporada disputando la Supercopa ante ${rival}.`, "copa");
+}
+
 function procesarCierreDeTemporada(club){
   club.plantel.forEach(j => {
     const nivelAnterior = j.nivel;
@@ -2009,9 +1927,7 @@ function procesarCierreDeTemporada(club){
     if(j.edad >= 34) j.nivel = Math.max(45, j.nivel - numeroAleatorio(1, 3));
     else if(j.edad <= 22) j.nivel = Math.min(99, j.nivel + numeroAleatorio(0, 2));
 
-    // El valor de mercado acompaña al nivel: si el jugador bajó de
-    // media por la edad, también baja su precio (y si un juvenil
-    // mejoró, su precio sube un poco).
+    
     if(j.nivel !== nivelAnterior && nivelAnterior > 0){
       const nuevoValor = Math.round(j.valor * (j.nivel / nivelAnterior) / 100000) * 100000;
       j.valor = Math.max(300000, nuevoValor);
@@ -2027,8 +1943,7 @@ function procesarCierreDeTemporada(club){
       ["DEF", "MED", "DEL"].forEach(p => {
         club.alineacion[p] = club.alineacion[p].map(id => id === j.id ? "" : id);
       });
-      // Se retira sin reemplazo inventado: el plantel queda con un
-      // jugador menos. Podés reforzar esa posición en el mercado.
+     
     } else {
       nuevoPlantel.push(j);
     }
@@ -2040,25 +1955,21 @@ function procesarCierreDeTemporada(club){
   }
 }
 
-/* ---------------------------------------------------------------------
-   18) COPA NACIONAL
-   --------------------------------------------------------------------- */
+
 function calidadDe(club, nombreEquipo){
   if(nombreEquipo === club.nombre) return nivelPromedioTitulares(club);
   const rival = club.rivales.find(r => r.nombre === nombreEquipo);
   return (rival ? rival.calidad : 74) + numeroAleatorio(-3, 3);
 }
 
-/* Un poco de gol en el alargue: cada equipo tiene una chance chica
-   de convertir, según su nivel. */
+
 function jugarProrroga(nivelA, nivelB){
   const golA = Math.random() < (0.22 + (nivelA - nivelB) / 100) ? 1 : 0;
   const golB = Math.random() < (0.22 + (nivelB - nivelA) / 100) ? 1 : 0;
   return [Math.max(0, golA), Math.max(0, golB)];
 }
 
-/* Tanda de penales: 5 tiros cada uno (75% de acierto), y si siguen
-   empatados, se define en muerte súbita. Devuelve "A" o "B". */
+
 function jugarPenales(){
   function tandaDeCinco(){
     let goles = 0;
@@ -2077,8 +1988,7 @@ function jugarPenales(){
   return a >= b ? "A" : "B";
 }
 
-/* Resuelve por completo (sin intervención del usuario) un cruce
-   que no involucra a nuestro club. */
+
 function autoResolverCruce(club, cruce){
   const calA = calidadDe(club, cruce.equipoA);
   const calB = calidadDe(club, cruce.equipoB);
@@ -2110,9 +2020,7 @@ function autoResolverCruce(club, cruce){
   if(!cruce.ganador) cruce.ganador = agA > agB ? cruce.equipoA : cruce.equipoB;
 }
 
-/* Arma los cruces de una fase de la Copa. Si el club del usuario
-   participa, ese cruce queda "pendiente" para jugarse a mano; el
-   resto se resuelve automáticamente al instante. */
+
 function generarRondaCopa(club, fase, equiposQueEntran){
   club.copa.fase = fase;
   club.copa.activa = true;
@@ -2178,8 +2086,6 @@ function avanzarRondaCopa(club){
   return premio;
 }
 
-/* Calcula el ganador de MI cruce una vez que ya jugué ambos
-   partidos (o el único, si es la final). */
 function resolverTrasCompletarCruce(club){
   const cruce = club.copa.miCruce;
   const calA = calidadDe(club, cruce.equipoA);
@@ -2209,12 +2115,12 @@ function resolverTrasCompletarCruce(club){
   return ganador;
 }
 
-/* ---------------------------------------------------------------------
-   19) JUGAR UN PARTIDO (el botón llama a esta función)
-   --------------------------------------------------------------------- */
+
 function jugarPartido(){
   const club = usuario().club;
-  if(tipoProximoPartido(club) === "copa") jugarPartidoCopa();
+  const tipo = tipoProximoPartido(club);
+  if(tipo === "supercopa") jugarPartidoSupercopa();
+  else if(tipo === "copa") jugarPartidoCopa();
   else jugarPartidoLiga();
 }
 
@@ -2271,6 +2177,7 @@ function jugarPartidoLiga(){
     club.calendario = club.rivales.map(r => r.nombre).sort(() => Math.random() - 0.5);
     procesarCierreDeTemporada(club);
     club.copa = copaVacia();
+    prepararSupercopa(club);
     generarObjetivosTemporada(club);
   }
 
@@ -2381,6 +2288,73 @@ function jugarPartidoCopa(){
   });
 }
 
+function jugarPartidoSupercopa(){
+  const club = usuario().club;
+  if(!alineacionCompleta(club)){
+    mostrarAviso("Completá tu alineación antes de jugar ❌");
+    irAPantalla2("alineacion");
+    return;
+  }
+
+  bajarContadorLesiones(club);
+
+  const rivalNombre = club.supercopa.rival;
+  const nivelMio = nivelPromedioTitulares(club);
+  const nivelRival = calidadDe(club, rivalNombre);
+  const golesMios = calcularGoles(nivelMio, nivelRival);
+  const golesRival = calcularGoles(nivelRival, nivelMio);
+
+  const { eventos, estadisticas, titularesIniciales } = jugarEventosDePartido(club, golesMios, golesRival, rivalNombre, nivelMio, nivelRival);
+
+  let golesFinalesMios = golesMios, golesFinalesRival = golesRival;
+  let prorroga = false, penales = false;
+  if(golesFinalesMios === golesFinalesRival){
+    const [pa, pb] = jugarProrroga(nivelMio, nivelRival);
+    golesFinalesMios += pa; golesFinalesRival += pb;
+    prorroga = true;
+    if(golesFinalesMios === golesFinalesRival){
+      penales = true;
+      const ganoYo = jugarPenales() === "A";
+      golesFinalesMios += ganoYo ? 1 : 0;
+      golesFinalesRival += ganoYo ? 0 : 1;
+    }
+  }
+  const gane = golesFinalesMios > golesFinalesRival;
+
+  club.golesTemporadaActual = (club.golesTemporadaActual || 0) + golesMios;
+  club.estadisticas.pjCopa = (club.estadisticas.pjCopa || 0) + 1;
+  if(gane) club.estadisticas.pgCopa = (club.estadisticas.pgCopa || 0) + 1;
+  else club.estadisticas.ppCopa = (club.estadisticas.ppCopa || 0) + 1;
+
+  club.resultados.unshift({
+    fecha: null, rival: rivalNombre, golesPropios: golesMios, golesRival,
+    resultado: gane ? "G" : "P", tipo: "copa", detalleCopa: "Supercopa"
+  });
+  club.resultados = club.resultados.slice(0, 15);
+
+  club.supercopa = null;
+
+  let mensajeExtra = prorroga ? (penales ? " (prórroga y penales)" : " (prórroga)") : "";
+  if(gane){
+    club.presupuesto += PREMIO_SUPERCOPA;
+    mensajeExtra += ` +${formatearPlata(PREMIO_SUPERCOPA)} — 🏆 ¡GANASTE LA SUPERCOPA!`;
+    mostrarAviso("🏆 ¡Ganaste la Supercopa!");
+  } else {
+    mensajeExtra += " — Perdiste la Supercopa";
+  }
+
+  resolverNegociacionesPendientes(club);
+  resolverOfertasSalientesPendientes(club);
+  generarOfertaRecibidaAlAzar(club);
+  guardarBaseDeDatos();
+  actualizarEncabezado();
+
+  iniciarSimulacionEnVivo({
+    tipo: "supercopa", rivalNombre, golesMios, golesRival, eventos, estadisticas, titularesIniciales,
+    etiquetaFecha: "SUPERCOPA", mensajeExtra
+  });
+}
+
 function actualizarFilaTabla(club, nombreEquipo, golesFavor, golesContra){
   const fila = club.tabla[nombreEquipo];
   if(!fila) return;
@@ -2392,9 +2366,7 @@ function actualizarFilaTabla(club, nombreEquipo, golesFavor, golesContra){
   else { fila.pe++; fila.pts += 1; }
 }
 
-/* ---------------------------------------------------------------------
-   20) PANTALLA LIGA (tabla de posiciones)
-   --------------------------------------------------------------------- */
+
 function obtenerTablaOrdenada(club){
   return Object.keys(club.tabla)
     .map(nombre => ({ nombre: nombre, ...club.tabla[nombre] }))
@@ -2424,25 +2396,20 @@ function mostrarTablaLiga(){
   }).join("");
 }
 
-/* ---------------------------------------------------------------------
-   21) PANTALLA CALENDARIO
-   --------------------------------------------------------------------- */
+
 function mostrarCalendario(){
   const club = usuario().club;
   const contenedor = document.getElementById("lista-calendario");
   const items = [];
 
-  // Próximo partido: ya viene identificado correctamente como
-  // LIGA o COPA según corresponda.
+
   items.push({
     clase: "calendario-destacado",
     izquierda: etiquetaProximoPartido(club) + " vs " + (obtenerProximoRivalGenerico(club) || "—"),
     derecha: null
   });
 
-  // Próximas fechas de liga ya conocidas (los cruces de copa más
-  // allá del que está pendiente todavía no se pueden anticipar,
-  // porque dependen de los resultados que falta jugar).
+  
   for(let i = 1; i <= 5; i++){
     const indice = (club.fecha - 1 + i) % club.calendario.length;
     items.push({
@@ -2452,8 +2419,7 @@ function mostrarCalendario(){
     });
   }
 
-  // Resultados recientes, de liga y copa mezclados en el mismo
-  // orden en que se jugaron, sin separarlos en secciones distintas.
+  
   (club.resultados || []).slice(0, 8).forEach(r => {
     let clase = "empato", texto = "EMPATÓ";
     if(r.resultado === "G"){ clase = "gano"; texto = "GANÓ"; }
@@ -2485,9 +2451,7 @@ function mostrarCalendario(){
   }
 }
 
-/* ---------------------------------------------------------------------
-   22) PANTALLA ESTADÍSTICAS
-   --------------------------------------------------------------------- */
+
 function calcularRachaActual(club){
   if(!club.resultados.length) return "—";
   const primero = club.resultados[0].resultado;
@@ -2527,9 +2491,7 @@ function mostrarStats(){
     : '<p class="vacio">Todavía nadie hizo goles.</p>';
 }
 
-/* ---------------------------------------------------------------------
-   23) CARTEL GRANDE DE FIN DE TEMPORADA
-   --------------------------------------------------------------------- */
+
 function mostrarResumenTemporadaSiCorresponde(){
   const datosUsuario = usuario();
   if(!datosUsuario || !datosUsuario.club) return;
@@ -2571,9 +2533,7 @@ function cerrarResumenTemporada(){
   document.getElementById("overlay-resumen-temporada").classList.remove("mostrar");
 }
 
-/* ---------------------------------------------------------------------
-   23-B) PERFIL DEL ENTRENADOR (historial de carrera + palmarés)
-   --------------------------------------------------------------------- */
+
 function verPerfilPropio(){
   perfilVistoEmail = null;
   perfilOrigen = "stats";
@@ -2630,9 +2590,7 @@ function mostrarPerfil(){
     : '<p class="vacio">Todavía no ganó ningún título con este club.</p>';
 }
 
-/* ---------------------------------------------------------------------
-   24) HISTORIAL DE TEMPORADAS ANTERIORES
-   --------------------------------------------------------------------- */
+
 function pintarHistorial(){
   const club = usuario().club;
   const historial = club.historial || [];
@@ -2650,12 +2608,9 @@ function pintarHistorial(){
     : '<p class="vacio">Todavía no completaste ninguna temporada.</p>';
 }
 
-/* 25) RANKING GLOBAL — se sincroniza con jsonbin.io después de cada partido. */
+
 const JSONBIN_BIN_ID = "6aa85f2fac6210605acd3138";
 const JSONBIN_API_KEY = "$2a$10$QwmyC.S2vCo8Zwhy3XJ3nOlRKYgIcQ0lJRZywToWyPFq.Ysl9WXyC";
-/* Revisa que haya algo cargado y que no sea el placeholder original
-   (comparar contra el texto de ejemplo exacto se rompía al pegar
-   los valores reales encima de ese mismo texto). */
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
 async function leerRankingOnline(){
@@ -2670,7 +2625,6 @@ async function leerRankingOnline(){
   }
 }
 
-/* Actualiza tu propia entrada dentro del JSON compartido, después de cada partido. */
 async function sincronizarRankingOnline(){
   const club = usuario()?.club;
   if(!club) return;
@@ -2708,9 +2662,6 @@ async function pintarRanking(){
   }
 
   contenedor.innerHTML = lista.map((r, i) => {
-      // Solo se puede ver el perfil completo de cuentas que existen en
-      // ESTE navegador (la tuya, u otra creada acá). El resto de
-      // entradas online son solo el resumen, no el club entero.
       const puedoVerPerfil = !!(baseDeDatos[r.email] && baseDeDatos[r.email].club);
       const soyYo = r.email === emailActual;
       return `
@@ -2730,10 +2681,6 @@ async function pintarRanking(){
     }).join("");
 }
 
-/* ---------------------------------------------------------------------
-   Al cargar la página, primero esperamos a que lleguen los datos
-   desde datos.json, y recién ahí mostramos el login.
-   --------------------------------------------------------------------- */
 cargarDatosDelJuego().then(() => {
   mostrarTab("login");
 }).catch(() => {
