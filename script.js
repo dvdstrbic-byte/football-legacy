@@ -2,10 +2,38 @@ let LIGAS = [];
 let POOL_MERCADO = [];
 
 async function cargarDatosDelJuego(){
-  const respuesta = await fetch("datos.json");
-  const datos = await respuesta.json();
-  LIGAS = datos.ligas;
-  POOL_MERCADO = datos.mercado;
+  const { data: ligasData, error: errorLigas } = await supa
+    .from("ligas")
+    .select("id, nombre, imagen, equipos(id, nombre, calidad, presupuesto, imagen, jugadores(nombre, puesto, nivel, valor, edad))")
+    .order("id");
+
+  if(errorLigas){
+    console.log("Error al cargar ligas:", errorLigas);
+    throw errorLigas;
+  }
+
+  LIGAS = ligasData.map(liga => ({
+    nombre: liga.nombre,
+    escudo: liga.imagen,
+    equipos: liga.equipos.map(equipo => ({
+      nombre: equipo.nombre,
+      calidad: equipo.calidad,
+      presupuesto: equipo.presupuesto,
+      escudo: equipo.imagen,
+      real: equipo.jugadores
+    }))
+  }));
+
+  const { data: mercadoData, error: errorMercado } = await supa
+    .from("mercado_jugadores")
+    .select("nombre, puesto, nivel, valor, edad");
+
+  if(errorMercado){
+    console.log("Error al cargar mercado:", errorMercado);
+    throw errorMercado;
+  }
+
+  POOL_MERCADO = mercadoData;
 }
 
 
@@ -70,17 +98,29 @@ let perfilVistoEmail = null;
 let perfilOrigen = "stats";
 
 function cargarBaseDeDatos(){
-  const guardado = localStorage.getItem("fm_usuarios");
-  if(!guardado) return {};
-  return JSON.parse(guardado);
+    return {};
 }
-function guardarBaseDeDatos(){
-  localStorage.setItem("fm_usuarios", JSON.stringify(baseDeDatos));
+async function guardarBaseDeDatos(){
+  if(!emailActual) return;
+
+  const cuenta = baseDeDatos[emailActual];
+  if(!cuenta || !cuenta.club) return;
+
+  const { error } = await supa
+    .from("partidas")
+    .upsert({
+      usuario_id: cuenta.id,
+      datos: cuenta.club
+    });
+
+  if(error){
+    console.log("Error al guardar la partida:", error);
+  }
 }
+
 function usuario(){
   return baseDeDatos[emailActual] ? baseDeDatos[emailActual] : null;
 }
-
 function irAPantalla(idPantalla){
   document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
   document.getElementById(idPantalla).classList.add("activa");
@@ -128,51 +168,80 @@ function mostrarAviso(texto){
 }
 
 
-function crearCuenta(evento){
-  evento.preventDefault();
-  const email = document.getElementById("registro-email").value.trim().toLowerCase();
-  const clave = document.getElementById("registro-pass").value;
-  const mensaje = document.getElementById("registro-mensaje");
+async function crearCuenta(evento){
+    evento.preventDefault();
 
-  if(clave.length < 4){
-    mensaje.textContent = "La contraseña debe tener al menos 4 caracteres.";
-    return false;
-  }
-  if(baseDeDatos[email]){
-    mensaje.textContent = "Ya existe una cuenta con ese email.";
-    return false;
-  }
+    const email = document.getElementById("registro-email").value.trim().toLowerCase();
+    const clave = document.getElementById("registro-pass").value;
+    const mensaje = document.getElementById("registro-mensaje");
 
-  baseDeDatos[email] = { clave: clave, club: null };
-  guardarBaseDeDatos();
+    if(clave.length < 4){
+        mensaje.textContent = "La contraseña debe tener al menos 4 caracteres.";
+        return false;
+    }
 
-  emailActual = email;
-  mostrarPantallaLigas();
-  return false;
-}
+    const { data, error } = await supa.auth.signUp({
+        email: email,
+        password: clave
+    });
 
-function iniciarSesion(evento){
-  evento.preventDefault();
-  const email = document.getElementById("login-email").value.trim().toLowerCase();
-  const clave = document.getElementById("login-pass").value;
-  const mensaje = document.getElementById("login-mensaje");
-  const cuenta = baseDeDatos[email];
+    if(error){
+        mensaje.textContent = error.message === "User already registered"
+            ? "Ese email ya está registrado."
+            : error.message;
+        return false;
+    }
 
-  if(!cuenta || cuenta.clave !== clave){
-    mensaje.textContent = "Email o contraseña incorrectos.";
-    return false;
-  }
-
-  emailActual = email;
-  if(cuenta.club){
-    entrarAlJuego();
-  }else{
+    emailActual = email;
+    baseDeDatos[email] = {
+        id: data.user.id,
+        club: null
+    };
     mostrarPantallaLigas();
-  }
-  return false;
+    return false;
 }
 
-function cerrarSesion(){
+async function iniciarSesion(evento){
+    evento.preventDefault();
+
+    const email = document.getElementById("login-email").value.trim().toLowerCase();
+    const clave = document.getElementById("login-pass").value;
+    const mensaje = document.getElementById("login-mensaje");
+
+    const { data, error } = await supa.auth.signInWithPassword({
+        email: email,
+        password: clave
+    });
+
+    if(error){
+        mensaje.textContent = "Email o contraseña incorrectos.";
+        return false;
+    }
+
+    const usuarioId = data.user.id;
+
+    const { data: partidaGuardada } = await supa
+        .from("partidas")
+        .select("datos")
+        .eq("usuario_id", usuarioId)
+        .maybeSingle();
+
+    emailActual = email;
+    baseDeDatos[email] = {
+        id: usuarioId,
+        club: partidaGuardada ? partidaGuardada.datos : null
+    };
+
+    if(baseDeDatos[email].club){
+        entrarAlJuego();
+    }else{
+        mostrarPantallaLigas();
+    }
+
+    return false;
+}
+async function cerrarSesion(){
+  await supa.auth.signOut();
   emailActual = null;
   document.getElementById("app").classList.remove("activa");
   irAPantalla("pantalla-auth");
@@ -1722,7 +1791,7 @@ function finalizarSimulacion(){
   if(mvp){
     mvpDiv.style.display = "block";
     mvpDiv.innerHTML = `
-      <p class="mvp-titulo">🏅 Jugador del partido</p>
+      <p class="mvp-titulo">Jugador del partido</p>
       <p class="mvp-nombre">${mvp.nombre}</p>
       <p class="mvp-detalle">${mvp.puesto} · Nivel ${mvp.nivel}</p>`;
   }
@@ -1732,7 +1801,7 @@ function finalizarSimulacion(){
   if(e){
     statsDiv.style.display = "block";
     statsDiv.innerHTML = `
-      <p class="stats-titulo">📊 Estadísticas del partido</p>
+      <p class="stats-titulo"> Estadísticas del partido</p>
       <div class="fila-stat"><span>${e.posesionMia}%</span><span class="stat-label">Posesión</span><span>${e.posesionRival}%</span></div>
       <div class="fila-stat"><span>${e.tirosMios}</span><span class="stat-label">Tiros</span><span>${e.tirosRival}</span></div>
       <div class="fila-stat"><span>${e.tirosArcoMios}</span><span class="stat-label">Tiros al arco</span><span>${e.tirosArcoRival}</span></div>
@@ -1745,7 +1814,6 @@ function finalizarSimulacion(){
   }
 
   registrarRachaGoles(club, sim);
-
   guardarBaseDeDatos();
   sincronizarRankingOnline();
   simulacionActual = null;
@@ -2540,9 +2608,37 @@ function verPerfilPropio(){
   irAPantalla2("perfil");
 }
 
-function verPerfilDesdeRanking(email){
-  perfilVistoEmail = email;
+async function verPerfilDesdeRanking(usuario_id){
+
+  const { data: fila } = await supa
+    .from("ranking")
+    .select("nombre")
+    .eq("usuario_id", usuario_id)
+    .maybeSingle();
+
+  const { data: partida, error } = await supa
+    .from("partidas")
+    .select("datos")
+    .eq("usuario_id", usuario_id)
+    .maybeSingle();
+
+  if(error || !partida){
+    console.log("Error al cargar el perfil:", error);
+    return;
+  }
+
+  // Usamos un email "de mentira" solo para reutilizar baseDeDatos y mostrarPerfil()
+  const claveFicticia = (fila?.nombre || "jugador") + "@ranking";
+
+  perfilVistoEmail = claveFicticia;
+
+  baseDeDatos[claveFicticia] = {
+    id: usuario_id,
+    club: partida.datos
+  };
+
   perfilOrigen = "ranking";
+
   irAPantalla2("perfil");
 }
 
@@ -2609,80 +2705,95 @@ function pintarHistorial(){
 }
 
 
-const JSONBIN_BIN_ID = "6aa85f2fac6210605acd3138";
-const JSONBIN_API_KEY = "$2a$10$QwmyC.S2vCo8Zwhy3XJ3nOlRKYgIcQ0lJRZywToWyPFq.Ysl9WXyC";
-const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
-
-async function leerRankingOnline(){
-  try{
-    const resp = await fetch(JSONBIN_URL + "/latest", {
-      headers: { "X-Master-Key": JSONBIN_API_KEY }
-    });
-    const datos = await resp.json();
-    return datos.record.jugadores || {};
-  }catch{
-    return {};
-  }
-}
-
 async function sincronizarRankingOnline(){
   const club = usuario()?.club;
-  if(!club) return;
-  try{
-    const jugadores = (await leerRankingOnline()) || {};
-    const tabla = obtenerTablaOrdenada(club);
-    const miFila = tabla.find(f => f.nombre === club.nombre);
-    jugadores[emailActual] = {
+
+  if(!club || !emailActual) return;
+
+  const tabla = obtenerTablaOrdenada(club);
+  const miFila = tabla.find(f => f.nombre === club.nombre);
+
+  const { error } = await supa
+    .from("ranking")
+    .upsert({
+      usuario_id: baseDeDatos[emailActual].id,
       nombre: emailActual.split("@")[0],
       club: club.nombre,
       temporada: club.temporada,
       puntos: miFila ? miFila.pts : 0,
       copas: club.estadisticas.copas || 0,
       presupuesto: club.presupuesto
-    };
-    await fetch(JSONBIN_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
-      body: JSON.stringify({ jugadores })
     });
-  }catch{}
-}
 
-async function pintarRanking(){
-  const contenedor = document.getElementById("lista-ranking");
-  contenedor.innerHTML = '<p class="vacio">Cargando ranking…</p>';
-
-  const jugadoresOnline = await leerRankingOnline();
-  const lista = Object.keys(jugadoresOnline).map(email => ({ email, ...jugadoresOnline[email] }));
-  lista.sort((a, b) => b.copas - a.copas || b.puntos - a.puntos || b.presupuesto - a.presupuesto);
-
-  if(!lista.length){
-    contenedor.innerHTML = '<p class="vacio">Todavía no hay directores técnicos para rankear.</p>';
+  if(error){
+    console.log("Error al guardar el ranking:", error);
     return;
   }
 
-  contenedor.innerHTML = lista.map((r, i) => {
-      const puedoVerPerfil = !!(baseDeDatos[r.email] && baseDeDatos[r.email].club);
-      const soyYo = r.email === emailActual;
+  console.log("Ranking guardado en Supabase");
+}
+
+
+async function pintarRanking(){
+  const contenedor = document.getElementById("lista-ranking");
+
+  contenedor.innerHTML = '<p class="vacio">Cargando ranking…</p>';
+
+  const { data: lista, error } = await supa
+    .from("ranking")
+    .select("*")
+    .order("copas", { ascending: false })
+    .order("puntos", { ascending: false })
+    .order("presupuesto", { ascending: false });
+
+  if(error){
+    console.log("Error al cargar el ranking:", error);
+    contenedor.innerHTML =
+      '<p class="vacio">No se pudo cargar el ranking.</p>';
+    return;
+  }
+
+  {
+    if(!lista.length){
+      contenedor.innerHTML =
+        '<p class="vacio">Todavía no hay directores técnicos para rankear.</p>';
+      return;
+    }
+
+    contenedor.innerHTML = lista.map((r, i) => {
+
+      const soyYo = r.usuario_id === baseDeDatos[emailActual]?.id;
+
       return `
-    <div class="ranking-item ${soyYo ? "ranking-yo" : ""} ${puedoVerPerfil ? "" : "ranking-no-clickeable"}"
-         ${puedoVerPerfil ? `onclick="verPerfilDesdeRanking('${r.email.replace(/'/g, "\\'")}')"` : ""}>
-      <span class="ranking-pos">${i + 1}°</span>
-      <div class="ranking-info">
-        <p class="ranking-nombre">${r.nombre}${soyYo ? " (vos)" : ""}</p>
-        <p class="ranking-detalle">${r.club} · Temporada ${r.temporada}</p>
-      </div>
-      <div class="ranking-datos">
-        <p class="ranking-copas">🏆 ${r.copas}</p>
-        <p class="ranking-puntos">${r.puntos} pts</p>
-      </div>
-      ${puedoVerPerfil ? '<span class="flecha">→</span>' : ""}
-    </div>`;
+        <div class="ranking-item ${soyYo ? "ranking-yo" : ""}"
+        onclick="verPerfilDesdeRanking(${r.usuario_id})">
+          
+          <span class="ranking-pos">${i + 1}°</span>
+
+          <div class="ranking-info">
+            <p class="ranking-nombre">
+              ${r.nombre}${soyYo ? " (vos)" : ""}
+            </p>
+
+            <p class="ranking-detalle">
+              ${r.club} · Temporada ${r.temporada}
+            </p>
+          </div>
+
+          <div class="ranking-datos">
+            <p class="ranking-copas">🏆 ${r.copas}</p>
+            <p class="ranking-puntos">${r.puntos} pts</p>
+          </div>
+
+        </div>
+      `;
+
     }).join("");
+  }
 }
 
 cargarDatosDelJuego().then(() => {
   mostrarTab("login");
 }).catch(() => {
-  alert("No se pudo cargar datos.json. Asegurate de abrir la página con Live Server (no con doble clic).");
+  alert("No se pudo conectar con Supabase. Revisá SUPABASE_URL y SUPABASE_ANON_KEY en index.html.");
 });

@@ -483,6 +483,13 @@ document.addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", actualizarBotonSonido);
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+  const SUPABASE_URL = "https://vggxmjsaegmrwmivhfeo.supabase.co/rest/v1/";
+  const SUPABASE_ANON_KEY = "sb_publishable_Oqi4C0ZoaDWCVibVWH4CXA_wZ5q3JJK";
+  const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
 <script src="script.js"></script>
 </body>
 </html>
