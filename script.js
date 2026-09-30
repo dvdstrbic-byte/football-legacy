@@ -2722,7 +2722,8 @@ async function sincronizarRankingOnline(){
       temporada: club.temporada,
       puntos: miFila ? miFila.pts : 0,
       copas: club.estadisticas.copas || 0,
-      presupuesto: club.presupuesto
+     presupuesto: club.presupuesto
+    }, { onConflict: "usuario_id" 
     });
 
   if(error){
