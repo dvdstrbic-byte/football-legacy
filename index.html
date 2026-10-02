@@ -80,9 +80,10 @@
       <button type="submit" class="boton boton-amarillo">Entrar</button>
     </form>
 
-    <form id="form-registro" class="formulario oculto" onsubmit="return crearCuenta(event)">
+        <form id="form-registro" class="formulario oculto" onsubmit="return crearCuenta(event)">
+      <input type="text" id="registro-nombre" placeholder="Nombre de usuario" required />
       <input type="email" id="registro-email" placeholder="Email" required />
-      <input type="password" id="registro-pass" placeholder="Contraseña (mínimo 4 caracteres)" required />
+      <input type="password" id="registro-pass" placeholder="Contraseña (mínimo 6 caracteres)" required />
       <p class="mensaje" id="registro-mensaje"></p>
       <button type="submit" class="boton boton-amarillo">Crear cuenta</button>
     </form>
@@ -441,7 +442,7 @@ function pintarPanelPlaylist(){
   const lista = document.getElementById("playlist-lista");
   if(!lista) return;
   lista.innerHTML = PLAYLIST.map((t, i) => `
-    <button class="opcion-playlist ${i === indicePista ? "activa" : ""}" onclick="reproducirPista(${i})">${t.nombre}</button>
+   <button class="opcion-playlist ${i === indicePista ? "activa" : ""}" onclick="reproducirPista(${i}); cerrarPanelPlaylist();">${t.nombre}</button>
   `).join("");
 }
 function actualizarPanelPlaylist(){ pintarPanelPlaylist(); }
@@ -453,6 +454,19 @@ function togglePanelPlaylist(){
   panel.style.display = seVaAAbrir ? "block" : "none";
   if(seVaAAbrir) pintarPanelPlaylist();
 }
+
+function cerrarPanelPlaylist(){
+  const panel = document.getElementById("panel-playlist");
+  if(panel) panel.style.display = "none";
+}
+
+document.addEventListener("click", function(evento){
+  const panel = document.getElementById("panel-playlist");
+  const boton = document.getElementById("btn-playlist");
+  if(!panel || panel.style.display === "none") return;
+  if(panel.contains(evento.target) || (boton && boton.contains(evento.target))) return;
+  panel.style.display = "none";
+});
 
 function actualizarBotonSonido(){
   const btn = document.getElementById("btn-sonido");

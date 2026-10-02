@@ -171,35 +171,52 @@ function mostrarAviso(texto){
 async function crearCuenta(evento){
     evento.preventDefault();
 
+        const nombreUsuario = document.getElementById("registro-nombre").value.trim();
     const email = document.getElementById("registro-email").value.trim().toLowerCase();
     const clave = document.getElementById("registro-pass").value;
     const mensaje = document.getElementById("registro-mensaje");
 
-    if(clave.length < 4){
-        mensaje.textContent = "La contraseña debe tener al menos 4 caracteres.";
+    if(nombreUsuario.length < 3){
+        mensaje.textContent = "El nombre de usuario debe tener al menos 3 caracteres.";
+        return false;
+    }
+    if(clave.length < 6){
+        mensaje.textContent = "La contraseña debe tener al menos 6 caracteres.";
+        return false;
+    }
+    if(!/[a-z]/.test(clave) || !/[0-9]/.test(clave)){
+        mensaje.textContent = "La contraseña debe tener letras y numeros.";
         return false;
     }
 
     const { data, error } = await supa.auth.signUp({
         email: email,
-        password: clave
+        password: clave,
+        options: {
+            data: { nombre_usuario: nombreUsuario }
+        }
     });
 
     if(error){
-        mensaje.textContent = error.message === "User already registered"
-            ? "Ese email ya está registrado."
-            : error.message;
+        const mensajesTraducidos = {
+            "User already registered": "Ese email ya está registrado.",
+            "Password should be at least 6 characters.": "La contraseña debe tener al menos 6 caracteres.",
+            "Password should contain at least one character of each: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ, 0123456789.":
+                "La contraseña debe tener al menos una mayúscula, una minúscula y un número.",
+            "Unable to validate email address: invalid format": "Ese email no es válido."
+        };
+        mensaje.textContent = mensajesTraducidos[error.message] || error.message;
         return false;
     }
 
-    emailActual = email;
+        emailActual = email;
     baseDeDatos[email] = {
         id: data.user.id,
+        nombre: nombreUsuario,
         club: null
     };
     mostrarPantallaLigas();
-    return false;
-}
+  }
 
 async function iniciarSesion(evento){
     evento.preventDefault();
@@ -226,9 +243,10 @@ async function iniciarSesion(evento){
         .eq("usuario_id", usuarioId)
         .maybeSingle();
 
-    emailActual = email;
+        emailActual = email;
     baseDeDatos[email] = {
         id: usuarioId,
+        nombre: data.user.user_metadata?.nombre_usuario || email.split("@")[0],
         club: partidaGuardada ? partidaGuardada.datos : null
     };
 
@@ -1241,7 +1259,7 @@ function mostrarFichar(club){
       const yaOfertado = yaOfertados.includes(j.nombre);
       const boton = yaOfertado
         ? `<span class="etiqueta empato">Oferta enviada</span>`
-        : `<button class="boton boton-chico" onclick="hacerOferta('${rival.nombre.replace(/'/g, "\\'")}','${j.nombre.replace(/'/g, "\\'")}','${j.puesto}',${j.nivel},${j.valor})">Ofertar</button>`;
+        : `<button class="boton boton-chico" onclick="hacerOferta('${rival.nombre.replace(/'/g, "\\'")}','${j.nombre.replace(/'/g, "\\'")}','${j.puesto}',${j.nivel},${j.valor},${j.edad})">Ofertar</button>`;
       return tarjetaJugadorHTML(jugadorParaTarjeta, boton);
     }).join("");
   }
@@ -1249,7 +1267,7 @@ function mostrarFichar(club){
   contenedor.innerHTML = html;
 }
 
-function hacerOferta(equipoVendedor, nombreJugador, puesto, nivel, valorReal){
+function hacerOferta(equipoVendedor, nombreJugador, puesto, nivel, valorReal, edad){
   const club = usuario().club;
   const sugerido = Math.round(valorReal / 100000) * 100000;
   const input = prompt(
@@ -1268,12 +1286,13 @@ function hacerOferta(equipoVendedor, nombreJugador, puesto, nivel, valorReal){
   }
 
   club.ofertasSalientes = club.ofertasSalientes || [];
-  club.ofertasSalientes.push({
+    club.ofertasSalientes.push({
     id: "os" + Date.now() + numeroAleatorio(1, 99999),
     equipoVendedor: equipoVendedor,
     jugadorNombre: nombreJugador,
     puesto: puesto,
     nivel: nivel,
+    edad: edad,
     montoOfertado: monto,
     valorEstimado: valorReal,
     estado: "pendiente"
@@ -1336,7 +1355,7 @@ function resolverOfertasSalientesPendientes(club){
       return;
     }
     club.presupuesto -= oferta.montoOfertado;
-    const nuevoJugador = crearJugadorReal({ nombre: oferta.jugadorNombre, puesto: oferta.puesto, nivel: oferta.nivel });
+    const nuevoJugador = crearJugadorReal({ nombre: oferta.jugadorNombre, puesto: oferta.puesto, nivel: oferta.nivel, edad: oferta.edad });
     nuevoJugador.valor = oferta.montoOfertado;
     club.plantel.push(nuevoJugador);
     club.totalGastadoFichajes = (club.totalGastadoFichajes || 0) + oferta.montoOfertado;
@@ -1365,7 +1384,7 @@ function responderContraoferta(idOferta, accion){
       return;
     }
     club.presupuesto -= oferta.montoContraoferta;
-    const nuevoJugador = crearJugadorReal({ nombre: oferta.jugadorNombre, puesto: oferta.puesto, nivel: oferta.nivel });
+        const nuevoJugador = crearJugadorReal({ nombre: oferta.jugadorNombre, puesto: oferta.puesto, nivel: oferta.nivel, edad: oferta.edad });
     nuevoJugador.valor = oferta.montoContraoferta;
     club.plantel.push(nuevoJugador);
     club.totalGastadoFichajes = (club.totalGastadoFichajes || 0) + oferta.montoContraoferta;
@@ -2657,7 +2676,7 @@ function mostrarPerfil(){
   club.trofeos = club.trofeos || { ligas: 0 };
 
   const esElMio = emailAMostrar === emailActual;
-  const nombreDT = emailAMostrar.split("@")[0];
+  const nombreDT = cuenta.nombre || emailAMostrar.split("@")[0];
   const partidosTotales = club.estadisticas.pj + (club.estadisticas.pjCopa || 0);
   const victoriasTotales = club.estadisticas.pg + (club.estadisticas.pgCopa || 0);
   const empatesTotales = club.estadisticas.pe + (club.estadisticas.peCopa || 0);
@@ -2717,7 +2736,7 @@ async function sincronizarRankingOnline(){
     .from("ranking")
     .upsert({
       usuario_id: baseDeDatos[emailActual].id,
-      nombre: emailActual.split("@")[0],
+      nombre: baseDeDatos[emailActual].nombre || emailActual.split("@")[0],
       club: club.nombre,
       temporada: club.temporada,
       puntos: miFila ? miFila.pts : 0,
@@ -2767,7 +2786,7 @@ async function pintarRanking(){
 
       return `
         <div class="ranking-item ${soyYo ? "ranking-yo" : ""}"
-        onclick="verPerfilDesdeRanking(${r.usuario_id})">
+        onclick="verPerfilDesdeRanking('${r.usuario_id}')">
           
           <span class="ranking-pos">${i + 1}°</span>
 
