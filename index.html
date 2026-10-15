@@ -295,8 +295,18 @@
       </div>
       <button class="boton boton-gris" onclick="irAPantalla2('historial')">Ver temporadas anteriores</button>
       <button class="boton boton-gris" onclick="verPerfilPropio()">Ver perfil del entrenador</button>
+      <button class="boton boton-gris" onclick="irAPantalla2('logros')">Ver logros</button>
       <h3 class="subtitulo-seccion">Goleadores</h3>
       <ol class="lista-goleadores lista-scroll" id="lista-goleadores"></ol>
+    </section>
+
+        <section class="vista" id="vista-logros">
+      <div class="encabezado-simple" style="text-align:left; margin-bottom:14px;">
+        <button class="boton boton-chico" onclick="irAPantalla2('stats')"><span class="flecha-texto">←</span> Volver</button>
+        <h2 style="margin:8px 0 0;">Logros</h2>
+        <p style="color:var(--color-texto-suave); font-size:12.5px; margin:4px 0 0;" id="logros-resumen">—</p>
+      </div>
+      <div class="lista-scroll" id="lista-logros"></div>
     </section>
 
         <section class="vista" id="vista-historial">
@@ -503,13 +513,14 @@ document.addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", actualizarBotonSonido);
 
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-
   const SUPABASE_URL = "https://vggxmjsaegmrwmivhfeo.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_Oqi4C0ZoaDWCVibVWH4CXA_wZ5q3JJK";
   const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
+
 <script src="script.js"></script>
 </body>
 </html>

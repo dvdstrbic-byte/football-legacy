@@ -146,6 +146,7 @@ function irAPantalla2(nombreVista){
   if(nombreVista === "calendario") mostrarCalendario();
   if(nombreVista === "stats") mostrarStats();
   if(nombreVista === "historial") pintarHistorial();
+  if(nombreVista === "logros") mostrarLogros();
   if(nombreVista === "ranking") pintarRanking();
   if(nombreVista === "perfil") mostrarPerfil();
 
@@ -256,8 +257,36 @@ async function iniciarSesion(evento){
         mostrarPantallaLigas();
     }
 
-    return false;
+        return false;
 }
+
+async function restaurarSesion(){
+  const { data:{ session }}=await supa.auth.getSession();
+  if(!session) return;
+
+  const user=session.user;
+  const email=(user.email || "").toLowerCase();
+
+  const { data: partidaGuardada } = await supa
+    .from("partidas")
+    .select("datos")
+    .eq("usuario_id", user.id)
+    .maybeSingle();
+
+  emailActual=email;
+  baseDeDatos[email]={
+    id: user.id,
+    nombre: user.user_metadata?.nombre_usuario || email.split("@")[0],
+    club: partidaGuardada ? partidaGuardada.datos : null
+  };
+
+  if(baseDeDatos[email].club){
+    entrarAlJuego();
+  }else{
+    mostrarPantallaLigas();
+  }
+}
+
 async function cerrarSesion(){
   await supa.auth.signOut();
   emailActual = null;
@@ -324,7 +353,7 @@ function formatearPlata(numero){
 }
 
 
-const EMOJI_NOTICIA = { gol: "⚽", fichaje: "💰", lesion: "🏥", copa: "🏆" };
+const EMOJI_NOTICIA = { gol: "⚽", fichaje: "💰", lesion: "🏥", copa: "🏆", logro: "🏅" };
 
 function agregarNoticia(club, texto, tipo){
   club.noticias = club.noticias || [];
@@ -400,6 +429,9 @@ function generarObjetivosTemporada(club){
     goles: { texto: `Marcar más de ${golesObjetivo} goles`, valor: golesObjetivo },
     finanzas: { texto: `Terminar con +${formatearPlata(finanzasObjetivo)}`, valor: finanzasObjetivo, presupuestoInicial: club.presupuesto }
   };
+
+  club.statsTemporada = statsTemporadaVacia();
+  generarObjetivosExtra(club);
 }
 
 
@@ -426,8 +458,9 @@ function calcularProgresoObjetivos(club){
     { icono: "", texto: "Copa: " + obj.copa.texto, actual: `Actualmente: ${faseActualTexto}` },
     { icono: "", texto: "Goles: " + obj.goles.texto, actual: `Actualmente: ${golesActuales} goles` },
     { icono: "", texto: "Finanzas: " + obj.finanzas.texto, actual: `Actualmente: ${actualFinanzas}` }
-  ];
+    ].concat(progresoObjetivosExtra(club));
 }
+
 
 
 function evaluarObjetivos(club, miPosicion, golesTemporada){
@@ -452,7 +485,125 @@ function evaluarObjetivos(club, miPosicion, golesTemporada){
     { icono: "⚽", texto: "Goles: " + obj.goles.texto, cumplido: cumplGoles },
     { icono: "💰", texto: "Finanzas: " + obj.finanzas.texto, cumplido: cumplFinanzas }
   ];
+    (obj.extras || []).forEach(e => {
+    items.push({ texto: e.texto, cumplido: OBJETIVOS_EXTRA[e.id].cumplido(club, e.valor) });
+  });
   return { items: items, cumplidos: items.filter(i => i.cumplido).length, total: items.length };
+}
+
+function statsTemporadaVacia(){
+  return { derrotas: 0, golesContra: 0, vallas: 0, rachaActual: 0, mejorRacha: 0, contundentes: 0, mejorVentaJuvenil: 0 };
+}
+
+function statsDe(club){
+  if(!club.statsTemporada) club.statsTemporada = statsTemporadaVacia();
+  return club.statsTemporada;
+}
+
+function registrarPartidoEnTemporada(club, golesMios, golesRival){
+  const s = statsDe(club);
+  s.golesContra += golesRival;
+  if(golesRival === 0) s.vallas++;
+  if(golesMios < golesRival) s.derrotas++;
+  if(golesMios - golesRival >= 2) s.contundentes++;
+  if(golesMios > golesRival){
+    s.rachaActual++;
+    s.mejorRacha = Math.max(s.mejorRacha, s.rachaActual);
+  }else{
+    s.rachaActual = 0;
+  }
+}
+
+function registrarVentaEnTemporada(club, jugador, monto){
+  const s = statsDe(club);
+  if(jugador.edad <= 22) s.mejorVentaJuvenil = Math.max(s.mejorVentaJuvenil, monto);
+}
+
+function nivelMedioMejores11(club){
+  const mejores = club.plantel.map(j => j.nivel).sort((a, b) => b - a).slice(0, 11);
+  if(!mejores.length) return 0;
+  return mejores.reduce((a, b) => a + b, 0) / mejores.length;
+}
+
+function golesDelMejorGoleadorEnTemporada(club){
+  const base = (club.objetivosTemporada && club.objetivosTemporada.golesBase) || {};
+  let mejor = 0;
+  Object.keys(club.goleadores || {}).forEach(id => {
+    mejor = Math.max(mejor, club.goleadores[id].goles - (base[id] || 0));
+  });
+  return mejor;
+}
+
+const OBJETIVOS_EXTRA = {
+  derrotas: {
+    generar: c => Math.max(2, Math.round(12 - (c.calidadBase - 69) * 0.65)),
+    texto: v => `No perder más de ${v} partidos de liga`,
+    progreso: c => statsDe(c).derrotas + " derrota(s)",
+    cumplido: (c, v) => statsDe(c).derrotas <= v
+  },
+  golesContra: {
+    generar: c => Math.max(7, Math.round(31 - (c.calidadBase - 69) * 1.3)),
+    texto: v => `Recibir menos de ${v} goles en la liga`,
+    progreso: c => statsDe(c).golesContra + " recibidos",
+    cumplido: (c, v) => statsDe(c).golesContra < v
+  },
+  vallas: {
+    generar: c => Math.max(2, Math.min(14, Math.round(1 + (c.calidadBase - 69) * 0.65))),
+    texto: v => `Dejar el arco en cero al menos ${v} veces`,
+    progreso: c => statsDe(c).vallas + " vallas invictas",
+    cumplido: (c, v) => statsDe(c).vallas >= v
+  },
+  racha: {
+    generar: c => Math.max(2, Math.min(9, Math.round((c.calidadBase - 66) / 3.2))),
+    texto: v => `Lograr una racha de ${v} victorias seguidas en liga`,
+    progreso: c => "mejor racha " + statsDe(c).mejorRacha,
+    cumplido: (c, v) => statsDe(c).mejorRacha >= v
+  },
+  contundentes: {
+    generar: c => Math.max(1, Math.min(12, Math.round((c.calidadBase - 70) * 0.5))),
+    texto: v => `Ganar ${v} partido(s) por 2 goles o más de diferencia`,
+    progreso: c => statsDe(c).contundentes + " victoria(s)",
+    cumplido: (c, v) => statsDe(c).contundentes >= v
+  },
+  ventaJuvenil: {
+    generar: c => Math.max(5000000, Math.min(20000000, Math.round(c.presupuesto * 0.15 / 1000000) * 1000000)),
+    texto: v => `Vender a un juvenil (22 años o menos) por más de ${formatearPlata(v)}`,
+    progreso: c => statsDe(c).mejorVentaJuvenil ? "mejor venta " + formatearPlata(statsDe(c).mejorVentaJuvenil) : "sin ventas de juveniles",
+    cumplido: (c, v) => statsDe(c).mejorVentaJuvenil > v
+  },
+  goleadorEstrella: {
+    generar: c => Math.max(5, Math.round(((c.objetivosTemporada && c.objetivosTemporada.goles) ? c.objetivosTemporada.goles.valor : 25) * 0.3)),
+    texto: v => `Tener un goleador con ${v} goles en la temporada`,
+    progreso: c => "máximo " + golesDelMejorGoleadorEnTemporada(c) + " gol(es)",
+    cumplido: (c, v) => golesDelMejorGoleadorEnTemporada(c) >= v
+  },
+  nivelOnce: {
+    generar: c => Math.round(nivelMedioMejores11(c)) + 2,
+    texto: v => `Subir el nivel promedio de tu once base a ${v}`,
+    progreso: c => "promedio " + nivelMedioMejores11(c).toFixed(1),
+    cumplido: (c, v) => nivelMedioMejores11(c) >= v
+  }
+};
+
+function generarObjetivosExtra(club){
+  const obj = club.objetivosTemporada;
+  obj.golesBase = {};
+  Object.keys(club.goleadores || {}).forEach(id => { obj.golesBase[id] = club.goleadores[id].goles; });
+
+  const ids = Object.keys(OBJETIVOS_EXTRA).sort(() => Math.random() - 0.5).slice(0, 2);
+  obj.extras = ids.map(id => {
+    const valor = OBJETIVOS_EXTRA[id].generar(club);
+    return { id: id, valor: valor, texto: OBJETIVOS_EXTRA[id].texto(valor) };
+  });
+}
+
+function progresoObjetivosExtra(club){
+  const extras = (club.objetivosTemporada && club.objetivosTemporada.extras) || [];
+  return extras.map(e => ({
+   icono: "", 
+    texto: e.texto,
+    actual: "Actualmente: " + OBJETIVOS_EXTRA[e.id].progreso(club)
+  }));
 }
 
 
@@ -562,6 +713,7 @@ function asegurarCamposNuevosDelClub(club){
   if(club.totalGastadoFichajes === undefined){ club.totalGastadoFichajes = 0; cambio = true; }
   if(club.golesTemporadaActual === undefined){ club.golesTemporadaActual = 0; cambio = true; }
   if(!club.objetivosTemporada){ generarObjetivosTemporada(club); cambio = true; }
+  else if(!club.objetivosTemporada.extras){ club.statsTemporada = statsTemporadaVacia(); generarObjetivosExtra(club); cambio = true; }
   if(cambio) guardarBaseDeDatos();
 }
 
@@ -1049,6 +1201,7 @@ function venderJugador(idJugador){
 
   const precioVenta = Math.round(jugador.valor * 0.85);
   club.presupuesto += precioVenta;
+  registrarVentaEnTemporada(club, jugador, precioVenta);
   club.plantel = club.plantel.filter(j => j.id !== idJugador);
 
   if(club.alineacion.POR === idJugador) club.alineacion.POR = "";
@@ -1166,6 +1319,7 @@ function responderOferta(idOferta, accion){
     const jugador = club.plantel.find(j => j.id === oferta.jugadorId);
     if(jugador){
       club.presupuesto += oferta.monto;
+      registrarVentaEnTemporada(club, jugador, oferta.monto);
       club.plantel = club.plantel.filter(j => j.id !== oferta.jugadorId);
       if(club.alineacion.POR === jugador.id) club.alineacion.POR = "";
       ["DEF", "MED", "DEL"].forEach(p => {
@@ -1833,6 +1987,7 @@ function finalizarSimulacion(){
   }
 
   registrarRachaGoles(club, sim);
+  revisarLogros(club);
   guardarBaseDeDatos();
   sincronizarRankingOnline();
   simulacionActual = null;
@@ -2239,6 +2394,7 @@ function jugarPartidoLiga(){
 
   club.estadisticas.pj++; club.estadisticas.gf += golesMios; club.estadisticas.gc += golesRival;
   club.golesTemporadaActual = (club.golesTemporadaActual || 0) + golesMios;
+  registrarPartidoEnTemporada(club, golesMios, golesRival);
   let resultado = "E";
   if(golesMios > golesRival){ club.estadisticas.pg++; resultado = "G"; }
   else if(golesMios < golesRival){ club.estadisticas.pp++; resultado = "P"; }
@@ -2645,8 +2801,7 @@ async function verPerfilDesdeRanking(usuario_id){
     console.log("Error al cargar el perfil:", error);
     return;
   }
-
-  // Usamos un email "de mentira" solo para reutilizar baseDeDatos y mostrarPerfil()
+  
   const claveFicticia = (fila?.nombre || "jugador") + "@ranking";
 
   perfilVistoEmail = claveFicticia;
@@ -2721,6 +2876,74 @@ function pintarHistorial(){
         </div>
       `).join("")
     : '<p class="vacio">Todavía no completaste ninguna temporada.</p>';
+}
+
+function totalVictorias(c){ return c.estadisticas.pg + (c.estadisticas.pgCopa || 0); }
+
+function rachaVictorias(c){
+  let n = 0;
+  for(const r of (c.resultados || [])){ if(r.resultado === "G") n++; else break; }
+  return n;
+}
+
+const LOGROS = [
+  { id: "debut",       icono: "⚽", titulo: "Debut",            desc: "Jugá tu primer partido",                    meta: 1,  actual: c => c.estadisticas.pj + (c.estadisticas.pjCopa || 0) },
+  { id: "victoria1",   icono: "✅", titulo: "Primera victoria", desc: "Ganá tu primer partido",                    meta: 1,  actual: totalVictorias },
+  { id: "victoria10",  icono: "🔥", titulo: "En racha",         desc: "Llegá a 10 victorias",                      meta: 10, actual: totalVictorias },
+  { id: "victoria50",  icono: "💪", titulo: "Veterano",         desc: "Llegá a 50 victorias",                      meta: 50, actual: totalVictorias },
+  { id: "goles50",     icono: "🥅", titulo: "Goleador",         desc: "Marcá 50 goles en liga",                    meta: 50, actual: c => c.estadisticas.gf },
+  { id: "goles100",    icono: "🎯", titulo: "Centenario",       desc: "Marcá 100 goles en liga",                   meta: 100, actual: c => c.estadisticas.gf },
+  { id: "racha5",      icono: "⚡", titulo: "Imparable",        desc: "Ganá 5 partidos seguidos",                  meta: 5,  actual: rachaVictorias },
+  { id: "liga1",       icono: "🏆", titulo: "Campeón",          desc: "Ganá tu primer título de liga",             meta: 1,  actual: c => (c.trofeos && c.trofeos.ligas) || 0 },
+  { id: "liga3",       icono: "👑", titulo: "Dinastía",         desc: "Ganá 3 títulos de liga",                    meta: 3,  actual: c => (c.trofeos && c.trofeos.ligas) || 0 },
+  { id: "copa1",       icono: "🥇", titulo: "Rey de copas",     desc: "Ganá la Copa Nacional",                     meta: 1,  actual: c => c.estadisticas.copas || 0 },
+  { id: "doblete",     icono: "✨", titulo: "Doblete",          desc: "Ganá Liga y Copa en la misma temporada",    meta: 1,
+    actual: c => (c.historial || []).filter(h => h.campeonLiga === c.nombre && h.campeonCopa === c.nombre).length },
+  { id: "objetivos",   icono: "🎖️", titulo: "Directiva feliz",  desc: "Cumplí todos los objetivos en una temporada",   meta: 1,
+    actual: c => (c.historial || []).filter(h => h.objetivos && h.objetivos.cumplidos === h.objetivos.total).length },
+  { id: "temporadas5", icono: "📅", titulo: "Leyenda del club", desc: "Completá 5 temporadas",                     meta: 5,  actual: c => c.temporada - 1 },
+  { id: "mecenas",     icono: "💰", titulo: "Mecenas",          desc: "Gastá $50M en fichajes",                    meta: 50000000, formato: formatearPlata, actual: c => c.totalGastadoFichajes || 0 }
+];
+
+function revisarLogros(club){
+  club.logrosDesbloqueados = club.logrosDesbloqueados || [];
+  const nuevos = LOGROS.filter(l => !club.logrosDesbloqueados.includes(l.id) && l.actual(club) >= l.meta);
+  if(!nuevos.length) return;
+  nuevos.forEach(l => {
+    club.logrosDesbloqueados.push(l.id);
+    agregarNoticia(club, "Logro desbloqueado: " + l.titulo + ".", "logro");
+  });
+  mostrarAviso(nuevos.length === 1
+    ? "🏅 Logro desbloqueado: " + nuevos[0].titulo
+    : "🏅 " + nuevos.length + " logros desbloqueados");
+}
+
+function mostrarLogros(){
+  const club = usuario().club;
+  const desbloqueados = club.logrosDesbloqueados || [];
+
+  const items = LOGROS.map(l => {
+    const actual = l.actual(club);
+    return { l, actual, logrado: desbloqueados.includes(l.id) || actual >= l.meta };
+  });
+
+  document.getElementById("logros-resumen").textContent =
+    items.filter(i => i.logrado).length + " de " + LOGROS.length + " logros desbloqueados";
+
+  document.getElementById("lista-logros").innerHTML = items.map(({ l, actual, logrado }) => {
+    const fmt = l.formato || (n => n);
+    const pct = Math.min(100, Math.round(actual / l.meta * 100));
+    return `
+      <div class="logro-item ${logrado ? "logro-desbloqueado" : "logro-bloqueado"}">
+        <span class="logro-icono">${logrado ? l.icono : "🔒"}</span>
+        <div class="logro-info">
+          <p class="logro-titulo">${l.titulo}</p>
+          <p class="logro-desc">${l.desc}</p>
+          ${logrado ? "" : `<div class="logro-barra"><div class="logro-barra-relleno" style="width:${pct}%"></div></div>`}
+        </div>
+        <span class="logro-progreso">${logrado ? "✅" : fmt(Math.min(actual, l.meta)) + " / " + fmt(l.meta)}</span>
+      </div>`;
+  }).join("");
 }
 
 
@@ -2812,8 +3035,13 @@ async function pintarRanking(){
   }
 }
 
-cargarDatosDelJuego().then(() => {
+cargarDatosDelJuego().then(async () => {
   mostrarTab("login");
+  try{
+    await restaurarSesion();
+  }catch(error){
+    console.log("No se pudo restaurar la sesión:", error);
+  }
 }).catch(() => {
   alert("No se pudo conectar con Supabase. Revisá SUPABASE_URL y SUPABASE_ANON_KEY en index.html.");
 });
