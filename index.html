@@ -108,6 +108,47 @@
   <div class="lista-equipos" id="lista-equipos"></div>
 </section>
 
+<section id="pantalla-avatar" class="pantalla">
+  <div class="avatar-contenedor">
+
+    <div class="encabezado-simple">
+      <h2>Personalizá tu perfil</h2>
+      <p>
+        Elegí tu avatar y tu banner. Los podés cambiar
+        cuando quieras desde tu perfil.
+      </p>
+    </div>
+
+    <div class="perfil-cabecera" id="avatar-preview"></div>
+
+    <div id="avatar-bloque-avatares">
+      <h3 class="subtitulo-seccion">Avatar</h3>
+      <div class="avatar-grilla" id="avatar-grilla"></div>
+    </div>
+
+    <div id="avatar-bloque-banners">
+      <h3 class="subtitulo-seccion">Banner</h3>
+      <div class="banner-grilla" id="banner-grilla"></div>
+    </div>
+
+    <button
+      class="boton boton-amarillo boton-grande"
+      id="btn-avatar-guardar"
+      onclick="guardarPerfilVisual()">
+      Guardar
+    </button>
+
+    <button
+      class="boton boton-gris"
+      id="btn-avatar-omitir"
+      onclick="continuarDespuesDeAvatar()">
+      Ahora no
+    </button>
+
+  </div>
+</section>
+
+
 <div id="app" class="app">
 
   <header class="topbar">
@@ -522,5 +563,6 @@ document.addEventListener("DOMContentLoaded", actualizarBotonSonido);
 </script>
 
 <script src="script.js"></script>
+<script src="avatares.js"></script>
 </body>
 </html>

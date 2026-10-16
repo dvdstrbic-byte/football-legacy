@@ -216,7 +216,7 @@ async function crearCuenta(evento){
         nombre: nombreUsuario,
         club: null
     };
-    mostrarPantallaLigas();
+    abrirSelectorAvatar("registro");
   }
 
 async function iniciarSesion(evento){
@@ -245,9 +245,11 @@ async function iniciarSesion(evento){
         .maybeSingle();
 
         emailActual = email;
-    baseDeDatos[email] = {
+        baseDeDatos[email] = {
         id: usuarioId,
         nombre: data.user.user_metadata?.nombre_usuario || email.split("@")[0],
+        avatar: data.user.user_metadata?.avatar || null,
+        banner: data.user.user_metadata?.banner || null,
         club: partidaGuardada ? partidaGuardada.datos : null
     };
 
@@ -277,6 +279,8 @@ async function restaurarSesion(){
   baseDeDatos[email]={
     id: user.id,
     nombre: user.user_metadata?.nombre_usuario || email.split("@")[0],
+    avatar: user.user_metadata?.avatar || null,
+    banner: user.user_metadata?.banner || null, 
     club: partidaGuardada ? partidaGuardada.datos : null
   };
 
@@ -2784,35 +2788,38 @@ function verPerfilPropio(){
 }
 
 async function verPerfilDesdeRanking(usuario_id){
-
+ 
   const { data: fila } = await supa
     .from("ranking")
-    .select("nombre")
+    .select("*")
     .eq("usuario_id", usuario_id)
     .maybeSingle();
-
+ 
   const { data: partida, error } = await supa
     .from("partidas")
     .select("datos")
     .eq("usuario_id", usuario_id)
     .maybeSingle();
-
+ 
   if(error || !partida){
     console.log("Error al cargar el perfil:", error);
     return;
   }
-  
+ 
   const claveFicticia = (fila?.nombre || "jugador") + "@ranking";
-
+ 
   perfilVistoEmail = claveFicticia;
-
+ 
   baseDeDatos[claveFicticia] = {
     id: usuario_id,
+    nombre: fila?.nombre || null,
+    avatar: fila?.avatar || null,
+    banner: fila?.banner || null,
     club: partida.datos
   };
-
+ 
   perfilOrigen = "ranking";
-
+ 
   irAPantalla2("perfil");
 }
 
@@ -2832,6 +2839,7 @@ function mostrarPerfil(){
 
   const esElMio = emailAMostrar === emailActual;
   const nombreDT = cuenta.nombre || emailAMostrar.split("@")[0];
+  pintarCabeceraPerfil(cuenta, nombreDT, esElMio);
   const partidosTotales = club.estadisticas.pj + (club.estadisticas.pjCopa || 0);
   const victoriasTotales = club.estadisticas.pg + (club.estadisticas.pgCopa || 0);
   const empatesTotales = club.estadisticas.pe + (club.estadisticas.peCopa || 0);
@@ -2949,90 +2957,86 @@ function mostrarLogros(){
 
 async function sincronizarRankingOnline(){
   const club = usuario()?.club;
-
+ 
   if(!club || !emailActual) return;
-
+ 
   const tabla = obtenerTablaOrdenada(club);
   const miFila = tabla.find(f => f.nombre === club.nombre);
-
-  const { error } = await supa
+  const yo = baseDeDatos[emailActual];
+ 
+  const fila = {
+    usuario_id: yo.id,
+    nombre: yo.nombre || emailActual.split("@")[0],
+    club: club.nombre,
+    temporada: club.temporada,
+    puntos: miFila ? miFila.pts : 0,
+    copas: club.estadisticas.copas || 0,
+    presupuesto: club.presupuesto
+  };
+ 
+  let { error } = await supa
     .from("ranking")
-    .upsert({
-      usuario_id: baseDeDatos[emailActual].id,
-      nombre: baseDeDatos[emailActual].nombre || emailActual.split("@")[0],
-      club: club.nombre,
-      temporada: club.temporada,
-      puntos: miFila ? miFila.pts : 0,
-      copas: club.estadisticas.copas || 0,
-     presupuesto: club.presupuesto
-    }, { onConflict: "usuario_id" 
-    });
-
+    .upsert({ ...fila, avatar: yo.avatar || null, banner: yo.banner || null }, { onConflict: "usuario_id" });
+ 
+  if(error && /avatar|banner/i.test(error.message || "")){
+    ({ error } = await supa
+      .from("ranking")
+      .upsert(fila, { onConflict: "usuario_id" }));
+  }
+ 
   if(error){
     console.log("Error al guardar el ranking:", error);
     return;
   }
-
+ 
   console.log("Ranking guardado en Supabase");
 }
 
-
 async function pintarRanking(){
   const contenedor = document.getElementById("lista-ranking");
-
+ 
   contenedor.innerHTML = '<p class="vacio">Cargando ranking…</p>';
-
+ 
   const { data: lista, error } = await supa
     .from("ranking")
     .select("*")
     .order("copas", { ascending: false })
     .order("puntos", { ascending: false })
     .order("presupuesto", { ascending: false });
-
+ 
   if(error){
     console.log("Error al cargar el ranking:", error);
-    contenedor.innerHTML =
-      '<p class="vacio">No se pudo cargar el ranking.</p>';
+    contenedor.innerHTML = '<p class="vacio">No se pudo cargar el ranking.</p>';
     return;
   }
-
-  {
-    if(!lista.length){
-      contenedor.innerHTML =
-        '<p class="vacio">Todavía no hay directores técnicos para rankear.</p>';
-      return;
-    }
-
-    contenedor.innerHTML = lista.map((r, i) => {
-
-      const soyYo = r.usuario_id === baseDeDatos[emailActual]?.id;
-
-      return `
-        <div class="ranking-item ${soyYo ? "ranking-yo" : ""}"
-        onclick="verPerfilDesdeRanking('${r.usuario_id}')">
-          
-          <span class="ranking-pos">${i + 1}°</span>
-
-          <div class="ranking-info">
-            <p class="ranking-nombre">
-              ${r.nombre}${soyYo ? " (vos)" : ""}
-            </p>
-
-            <p class="ranking-detalle">
-              ${r.club} · Temporada ${r.temporada}
-            </p>
-          </div>
-
-          <div class="ranking-datos">
-            <p class="ranking-copas">🏆 ${r.copas}</p>
-            <p class="ranking-puntos">${r.puntos} pts</p>
-          </div>
-
-        </div>
-      `;
-
-    }).join("");
+ 
+  if(!lista.length){
+    contenedor.innerHTML = '<p class="vacio">Todavía no hay directores técnicos para rankear.</p>';
+    return;
   }
+ 
+  contenedor.innerHTML = lista.map((r, i) => {
+    const soyYo = r.usuario_id === baseDeDatos[emailActual]?.id;
+ 
+    return `
+      <div class="ranking-item ${soyYo ? "ranking-yo" : ""}"
+        onclick="verPerfilDesdeRanking('${r.usuario_id}')">
+ 
+        <span class="ranking-pos">${i + 1}°</span>
+ 
+        ${avatarHTML(r.avatar, "s", r.nombre)}
+ 
+        <div class="ranking-info">
+          <p class="ranking-nombre">${escaparHTML(r.nombre)}${soyYo ? " (vos)" : ""}</p>
+          <p class="ranking-detalle">${escaparHTML(r.club)} · Temporada ${r.temporada}</p>
+        </div>
+ 
+        <div class="ranking-datos">
+          <p class="ranking-copas">🏆 ${r.copas}</p>
+          <p class="ranking-puntos">${r.puntos} pts</p>
+        </div>
+      </div>`;
+  }).join("");
 }
 
 cargarDatosDelJuego().then(async () => {
