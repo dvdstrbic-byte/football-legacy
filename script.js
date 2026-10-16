@@ -342,10 +342,18 @@ function elegirLiga(indice){
   irAPantalla("pantalla-equipo");
 }
 
-function elegirEquipo(indiceEquipo){
+async function elegirEquipo(indiceEquipo){
   const equipo = ligaElegidaTemporal.equipos[indiceEquipo];
-  baseDeDatos[emailActual].club = crearClubNuevo(equipo, ligaElegidaTemporal);
-  guardarBaseDeDatos();
+  const cuenta = baseDeDatos[emailActual];
+
+  console.log("Email actual:", emailActual);
+  console.log("Cuenta:", cuenta);
+  console.log("ID del usuario:", cuenta?.id);
+
+  cuenta.club = crearClubNuevo(equipo, ligaElegidaTemporal);
+
+  await guardarBaseDeDatos();
+
   entrarAlJuego();
 }
 
@@ -1869,6 +1877,7 @@ function iniciarSimulacionEnVivo(datos){
   };
 
   irAPantalla2("partido");
+  reproducirEfecto("inicio");
   simulacionActual.timer = setInterval(avanzarMinuto, 180);
 }
 
@@ -1892,6 +1901,8 @@ function mostrarEventoEnVivo(evento){
   if(evento.tipo === "gol" && evento.mio && !evento.texto) resolverGolEnVivo(evento);
   if(evento.tipo === "lesion") aplicarLesionEnVivo(evento);
   if(evento.tipo === "cambio") aplicarCambioEnVivo(evento);
+
+  efectoDeEvento(evento);
 
   if(evento.tipo === "gol"){
     if(evento.mio){ sim.golesMios++; document.getElementById("partido-goles-local").textContent = sim.golesMios; }
@@ -1945,6 +1956,7 @@ function finalizarSimulacion(){
   const sim = simulacionActual;
   if(!sim) return;
   clearInterval(sim.timer);
+  reproducirEfecto("final");
 
   document.getElementById("btn-cambios").style.display = "none";
   document.getElementById("panel-cambios").style.display = "none";
@@ -2807,8 +2819,9 @@ async function verPerfilDesdeRanking(usuario_id){
   }
  
   const claveFicticia = (fila?.nombre || "jugador") + "@ranking";
+  const esElMio = usuario_id === baseDeDatos[emailActual]?.id;
  
-  perfilVistoEmail = claveFicticia;
+  perfilVistoEmail = esElMio ? null : claveFicticia;
  
   baseDeDatos[claveFicticia] = {
     id: usuario_id,

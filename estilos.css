@@ -71,7 +71,6 @@ button, input, select{
   border-radius: 6px;
 }
 
-/*barra de desplazamiento */
 *::-webkit-scrollbar{
   width: 7px;
   height: 7px;
@@ -233,14 +232,28 @@ img.escudo-liga{
   flex-shrink: 0;
 }
 
-.app{ display: none; height: 100vh; flex-direction: column; }
-.app.activa{ display: flex; }
+.app {
+  display: none;
+  height: 100vh;
+  height: 100dvh;
+  flex-direction: column;
+  overflow: hidden; 
+}
 
-.topbar{
+.app.activa { 
+  display: flex; 
+}
+
+.topbar {
   position: relative;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 13px 16px; background: var(--color-hundido); border-bottom: 1px solid rgba(var(--color-texto-rgb),0.14);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 13px 16px; 
+  background: var(--color-hundido); 
+  border-bottom: 1px solid rgba(var(--color-texto-rgb),0.14);
   flex-shrink: 0;
+  z-index: 10;
 }
 .nombre-club{ margin: 0; font-weight: 800; font-size: 14.5px; }
 .info-club{ margin: 2px 0 0; font-size: 12px; color: var(--color-texto-suave); }
@@ -250,16 +263,28 @@ img.escudo-liga{
 .topbar-der .boton-chico{ padding: 7px 10px; }
 .hud-plata{ margin: 0; font-family: 'Bebas Neue', sans-serif; color: var(--color-acento); font-size: 18px; letter-spacing: 0.5px; }
 
-.contenido{ flex: 1; overflow-y: auto; padding: 20px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+.contenido { 
+  flex: 1; 
+  overflow-y: auto; 
+  padding: 20px 24px; 
+  max-width: 900px; 
+  margin: 0 auto; 
+  width: 100%; 
+}
 
 .vista{ display: none; }
 .vista.activa{ display: block; }
 
-.menu-inferior{
-  display: flex; justify-content: space-around;
-  background: var(--color-hundido); border-top: 1px solid rgba(var(--color-texto-rgb),0.14);
-  padding: 8px 4px; flex-shrink: 0;
+.menu-inferior {
+  display: flex; 
+  justify-content: space-around;
+  background: var(--color-hundido); 
+  border-top: 1px solid rgba(var(--color-texto-rgb),0.14);
+  padding: 8px 4px; 
+  flex-shrink: 0; 
+  z-index: 10;
 }
+
 .nav-boton{
   background: none; border: none; border-top: 2px solid transparent; color: var(--color-texto-suave);
   font-size: 11.5px; font-weight: 700; letter-spacing: 0.3px; cursor: pointer; padding: 9px 6px 7px;
@@ -946,13 +971,13 @@ img.escudo-liga{
 
 
 @media (max-width: 480px){
-  .contenido{ padding: 16px 12px; }
-  .cancha{ padding: 16px 5px; gap: 10px; }
-  .fila-cancha{ gap: 8px 5px; }
-  .puesto{ flex-basis: 56px; }
-  .chip-jugador{ padding: 7px 7px; font-size: 10.5px; gap: 4px; }
-  .chip-jugador-nivel{ width: 18px; height: 18px; font-size: 11px; }
-  .puesto-etiqueta{ font-size: 10.5px; }
+  .contenido{ padding: 12px 10px; }
+  .cancha{ padding: 10px 4px; gap: 8px; min-height: 350px; height: 100%; }
+  .fila-cancha{ gap: 6px 4px; }
+  .puesto{ flex-basis: 22%; }
+  .chip-jugador{ padding: 6px 4px; font-size: 10px; gap: 2px; }
+  .chip-jugador-nivel{ width: 18px; height: 18px; font-size: 10px; }
+  .puesto-etiqueta{ font-size: 10px; }
 
   .topbar{ padding: 11px 12px; }
   .nombre-club{ font-size: 13.5px; }

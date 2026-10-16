@@ -452,9 +452,34 @@ const PLAYLIST = [
 ];
 
 const VOLUMEN_MENU = 0.35;
-const VOLUMEN_PARTIDO = 0.12;
+const VOLUMEN_PARTIDO = 0.10;
+
+const EFECTOS = {
+  inicio: "efectos/silbato.wav",
+  final: "efectos/silbato.wav",
+  gol: "efectos/gol.wav",
+  golRival: "efectos/gol.wav",
+};
 
 let sonidoActivado = (localStorage.getItem("fm_sonido") ?? "on") !== "off";
+
+const efectosCargados = {};
+
+function reproducirEfecto(clave){
+  if(!sonidoActivado) return;
+  const ruta = EFECTOS[clave];
+  if(!ruta) return;
+  if(!efectosCargados[clave]) efectosCargados[clave] = new Audio(ruta);
+  const audio = efectosCargados[clave];
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
+
+function efectoDeEvento(evento){
+  switch(evento.tipo){
+    case "gol": reproducirEfecto(evento.mio ? "gol" : "golRival"); break;
+  }
+}
 
 let indicePista = parseInt(localStorage.getItem("fm_pista"), 10);
 if(isNaN(indicePista) || indicePista < 0 || indicePista >= PLAYLIST.length) indicePista = 0;
